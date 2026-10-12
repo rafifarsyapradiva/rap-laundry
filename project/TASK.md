@@ -48,10 +48,10 @@ Jangan menandai task sebagai `[x]` jika belum diverifikasi.
 ## Fase 1 — Rencana Teknis dan Fondasi Laravel
 
 ### Task 1.1 — Rencana implementasi
-- [ ] Baca seluruh `PRD.md`.
-- [ ] Catat asumsi, risiko, dependensi, dan hal yang perlu dikonfirmasi.
-- [ ] Susun urutan implementasi serta definisi selesai untuk setiap fase.
-- [ ] Buat `docs/IMPLEMENTATION_PLAN.md`.
+- [x] Baca seluruh `PRD.md`.
+- [x] Catat asumsi, risiko, dependensi, dan hal yang perlu dikonfirmasi.
+- [x] Susun urutan implementasi serta definisi selesai untuk setiap fase.
+- [x] Buat `docs/IMPLEMENTATION_PLAN.md`.
 
 ### Task 1.2 — Siapkan aplikasi
 - [ ] Jika proyek belum ada, buat proyek Laravel 12 sesuai lingkungan.
