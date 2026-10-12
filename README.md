@@ -7,4 +7,5 @@ Aplikasi pengelolaan operasional laundry untuk skala kecil hingga menengah yang 
 
 ## Dokumen Proyek
 - [PRD (Product Requirements Document)](project/PRD.md)
+- [Engineering Standards](project/ENGINEERING_STANDARDS.md)
 - [Task Tracking](project/TASK.md)
