@@ -74,19 +74,36 @@ DB_USERNAME=root
 DB_PASSWORD=
 ```
 
-### Langkah 4: Pembuatan Database Lokal
+### Langkah 4: Pembuatan Database Lokal & Migrasi
 
-#### Opsi A: Melalui phpMyAdmin (Antarmuka Web)
-1. Buka peramban dan navigasikan ke `http://localhost/phpmyadmin`.
+Panduan lengkap, langkah visual phpMyAdmin, dan pemecahan masalah koneksi dapat dibaca di **[Panduan Setup Database & phpMyAdmin](docs/DATABASE_SETUP.md)**.
+
+#### 1. Buat Database di phpMyAdmin
+1. Buka peramban dan navigasikan ke: **`http://localhost/phpmyadmin`**
 2. Klik menu **Databases** (Basis Data).
-3. Masukkan nama database: `rap_laundry`.
-4. Pilih Collation: `utf8mb4_unicode_ci`.
-5. Klik **Create** (Buat).
+3. Buat dua basis data dengan Collation `utf8mb4_unicode_ci`:
+   - `rap_laundry` (database operasional utama)
+   - `rap_laundry_testing` (database pengujian terisolasi)
 
-#### Opsi B: Melalui Terminal CLI (XAMPP)
+*(Atau via terminal CLI):*
 ```powershell
-C:\xampp\mysql\bin\mysql.exe -u root -e "CREATE DATABASE IF NOT EXISTS rap_laundry CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+C:\xampp\mysql\bin\mysql.exe -u root -e "CREATE DATABASE IF NOT EXISTS rap_laundry CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci; CREATE DATABASE IF NOT EXISTS rap_laundry_testing CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
 ```
+
+#### 2. Jalankan Migrasi dan Seeder
+Eksekusi migrasi skema tabel dan data awal:
+```bash
+php artisan migrate
+php artisan db:seed
+```
+
+#### 3. Akun Demo Awal Bawaan Seeder
+| Peran (*Role*) | Username | Password Default | Akses |
+|---|---|---|---|
+| **Admin (Pemilik)** | `admin` | `admin123` | Akses penuh dashboard, pengaturan, master tarif, user |
+| **Kasir (Staf)** | `kasir` | `kasir123` | Transaksi, order, cucian, kas masuk, cetak nota |
+
+---
 
 ### Langkah 5: Menjalankan Server Lokal
 Jalankan server pengembangan Laravel:
@@ -99,7 +116,7 @@ Aplikasi dapat diakses melalui peramban di: **`http://localhost:8000`** (atau `h
 
 ## 4. Pengujian Otomatis
 
-Untuk menjalankan unit dan feature tests:
+Untuk menjalankan seluruh test suite otomatis pada database terisolasi (`rap_laundry_testing`):
 ```bash
 php artisan test
 ```
@@ -129,6 +146,8 @@ Jika aplikasi diakses dari perangkat kasir lain dalam jaringan Wi-Fi/LAN yang sa
 - [Product Requirements Document (PRD)](project/PRD.md)
 - [Software Engineering Standards](project/ENGINEERING_STANDARDS.md)
 - [Checklist Pelacakan Tugas (TASK)](project/TASK.md)
+- [Spesifikasi Skema Database (DATABASE)](docs/DATABASE.md)
+- [Panduan Setup Database & phpMyAdmin (DATABASE SETUP)](docs/DATABASE_SETUP.md)
 - [Rencana Implementasi Teknis (IMPLEMENTATION PLAN)](docs/IMPLEMENTATION_PLAN.md)
 - [Hasil Audit Lingkungan Lokal (ENVIRONMENT AUDIT)](docs/ENVIRONMENT_AUDIT.md)
 - [Panduan Pencadangan dan Pemulihan (BACKUP & RESTORE)](docs/BACKUP_RESTORE.md)

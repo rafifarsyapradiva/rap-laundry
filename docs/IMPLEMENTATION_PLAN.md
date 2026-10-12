@@ -7,8 +7,7 @@
 **Database:** MariaDB 10.4.32 / MySQL (XAMPP Port 3306 Lokal, phpMyAdmin)  
 **Pola Desain:** Clean MVC + Service Layer + Form Request + Policies + Backed PHP Enum  
 **Gaya Desain:** Glassmorphism Elegan (Palet Biru & Putih) — 100% Offline-First  
-**Penyusun:** Senior Software Engineer, System Analyst, UI/UX Designer & Laravel 12 Developer  
-**Status Gate:** Gate 0 Lulus | Fase 1 (Task 1.1) Disetujui  
+**Status Gate:** Gate 0 Lulus | Gate 1 Lulus | Gate 2 Lulus (Fase 2 Selesai) — Siap Lanjut ke Fase 3  
 
 ---
 
@@ -37,8 +36,8 @@ Aplikasi dibangun untuk beroperasi secara mandiri di komputer lokal (atau diakse
 
 | No | Risiko Teknis / Operasional | Tingkat Keparahan | Strategi Mitigasi Rekayasa |
 |:---|:---|:---:|:---|
-| 1 | **Tabrakan Nomor Transaksi (`LD-YYYYMMDD-XXXX`) pada akses multi-kasir konkuren** | Kritis (High) | Gunakan *Database Pessimistic Locking* (`lockForUpdate()`) dalam `DB::transaction` saat meng-generate nomor urut harian unik dari tabel pesanan. |
-| 2 | **Ketidaktepatan kalkulasi finansial akibat tipe floating-point** | Kritis (High) | Seluruh nominal uang dan kuantitas berat wajib menggunakan tipe SQL `DECIMAL(12,2)` dan `DECIMAL(8,2)` serta ekstensi PHP `bcmath`. Dilarang memakai `FLOAT`/`DOUBLE`. |
+| 1 | **Tabrakan Nomor Transaksi (`LD-YYYYMMDD-XXXX`) pada akses multi-kasir konkuren** | Kritis (High) | Tabel `number_sequences` dengan *row lock* (`insertOrIgnore` + `lockForUpdate()`) di dalam `DB::transaction` pembuatan pesanan, ditambah unique index `order_number` sebagai pengaman terakhir. Mengunci baris nyata menghindari *gap lock* pada order pertama setiap hari. |
+| 2 | **Ketidaktepatan kalkulasi finansial akibat tipe floating-point** | Kritis (High) | Seluruh nominal uang dan kuantitas berat wajib menggunakan tipe SQL `DECIMAL(12,2)` dan `DECIMAL(8,2)`; aritmetika PHP memakai `Brick\Math\BigDecimal`. Subtotal item dibulatkan half-up ke rupiah penuh. Dilarang memakai `FLOAT`/`DOUBLE`. |
 | 3 | **Manipulasi harga/total melalui manipulasi inspect element browser** | Kritis (High) | Server menolak input total dari client. Seluruh subtotal item, diskon, biaya tambahan, dan total pesanan dihitung ulang (*recalculated*) di server berdasarkan harga master database. |
 | 4 | **Perubahan harga master layanan merusak nilai transaksi historis** | Tinggi (Medium-High) | Menerapkan pola **Snapshot Tarif**: Kolom `service_name_snapshot`, `billing_unit_snapshot`, dan `unit_price` disimpan permanen di tabel `order_items` saat transaksi dicatat. |
 | 5 | **Kerusakan integritas pembukuan akibat pengeditan diam-diam pembayaran kasir** | Tinggi (Medium-High) | Larangan *silent update/delete* pada tabel `payments`. Koreksi pembayaran hanya boleh dilakukan via mekanisme **Void Pembayaran** dengan mencatat aktor, waktu, dan alasan pembatalan. |
@@ -71,9 +70,11 @@ Mengikuti standar pada `project/ENGINEERING_STANDARDS.md`, LaundryDesk mengadops
 rap-laundry/
 ├── app/
 │   ├── Enums/                       # PHP Backed Enums untuk integritas domain
+│   │   ├── ActivityAction.php       # Jenis aksi audit log (auth.login, order.created, payment.voided, ...)
 │   │   ├── BillingUnit.php          # kg, item, package
-│   │   ├── LaundryStatus.php        # Diterima, Menunggu, Dicuci, Dikeringkan, Disetrika, Siap Diambil, Selesai, Dibatalkan
+│   │   ├── LaundryStatus.php        # Diterima, Menunggu, Dicuci, Dikeringkan, Disetrika, Siap Diambil, Selesai, Dibatalkan + matriks transisi
 │   │   ├── PaymentMethod.php        # Tunai, Transfer Bank, QRIS Manual, Lainnya
+│   │   ├── PaymentRecordStatus.php  # valid, voided
 │   │   ├── PaymentStatus.php        # Belum Dibayar, Dibayar Sebagian, Lunas
 │   │   └── UserRole.php             # Admin, Kasir
 │   ├── Http/
@@ -115,12 +116,12 @@ rap-laundry/
 │   └── Services/                    # Logika bisnis terpusat & transaksi atomik
 │       ├── AuditService.php         # Perekaman jejak audit ke activity_logs
 │       ├── InvoiceService.php       # Kompilasi data cetak nota ramah printer
-│       ├── OrderNumberService.php   # Generator nomor transaksi unik anti-race condition
+│       ├── NumberSequenceService.php # Nomor transaksi & kode pelanggan anti-race condition (tabel number_sequences)
 │       ├── OrderService.php         # Pembuatan pesanan, recalculation, pembatalan
 │       └── PaymentService.php       # Pencatatan uang masuk, void pembayaran, saldo
 ├── database/
 │   ├── factories/                   # Model factory untuk automated testing
-│   ├── migrations/                  # 9 migrasi terurut dengan foreign keys
+│   ├── migrations/                  # 10 tabel inti terurut dengan foreign keys
 │   └── seeders/                     # Seeder akun admin/kasir, layanan dasar, pengaturan usaha
 ├── resources/
 │   ├── css/
@@ -152,6 +153,15 @@ rap-laundry/
 ---
 
 ## 4. Desain Database & Urutan Migrasi
+
+> [!IMPORTANT]
+> **Sumber kebenaran skema adalah [`docs/DATABASE.md`](DATABASE.md)** (disetujui pada Task 2.1). Ringkasan di bawah ini dipertahankan sebagai konteks. Jika ada perbedaan, `DATABASE.md` yang berlaku. Koreksi dari versi awal:
+> 1. `order_items.order_id` memakai **restrict**, bukan cascade (transaksi tidak boleh dihapus).
+> 2. `users` dibuat dengan **memodifikasi** migration bawaan `0001_01_01_000000_create_users_table.php`, bukan file baru.
+> 3. Tambahan kolom `orders.cancelled_by` dan `payments.void_reason`.
+> 4. Kolom status/role/metode/satuan = `VARCHAR(30)` + PHP Backed Enum (bukan MySQL `ENUM`).
+> 5. Tabel ke-10 `number_sequences` untuk penomoran anti-duplikasi.
+> 6. Subtotal item dibulatkan half-up ke rupiah penuh; pembatalan pesanan ditolak selama ada pembayaran valid; tidak ada snapshot data pelanggan.
 
 Skema database dirancang untuk menjamin integritas relasional, performa indeks pencarian, dan ketahanan data historis.
 
@@ -267,21 +277,23 @@ graph TD
 - **Gate 1:** Aplikasi Laravel 12 dapat diakses dan berjalan di server lokal secara luring (*offline*).
 
 ### Fase 2 — Desain Database dan Model
-- **Task 2.1 — Rancang skema:**
+- **Task 2.1 — Rancang skema (Selesai):**
   - Menyusun dokumentasi spesifikasi skema relasional di `docs/DATABASE.md`.
   - Menetapkan tipe `DECIMAL` untuk uang (`DECIMAL(12,2)`) dan berat (`DECIMAL(8,2)`).
   - Merancang skema snapshot tarif pada pesanan.
-- **Task 2.2 — Buat migration:**
-  - Membuat 9 file migrasi terurut sesuai dependensi foreign key.
+  - Membuat enum terpusat di `app/Enums/`.
+- **Task 2.2 — Buat migration (Selesai):**
+  - Menyiapkan database `rap_laundry_testing` dan mengarahkan `phpunit.xml` ke sana sebelum test pertama.
+  - Memodifikasi migration `users` bawaan dan membuat 9 migrasi baru (total 10 tabel inti) sesuai urutan `docs/DATABASE.md` §15.
   - Menjalankan migrasi pada MariaDB lokal (`php artisan migrate`).
-- **Task 2.3 — Model dan relasi:**
+- **Task 2.3 — Model dan relasi (Selesai):**
   - Membuat Eloquent Model: `User`, `Customer`, `Service`, `Order`, `OrderItem`, `Payment`, `OrderStatusHistory`, `BusinessSetting`, `ActivityLog`.
   - Menerapkan relasi `belongsTo`, `hasMany`, casting ke PHP Enum, dan `SoftDeletes`.
   - Menyusun Model Factory dan Seeder data demo yang aman.
-- **Task 2.4 — Database melalui phpMyAdmin:**
-  - Dokumentasikan panduan pembuatan database melalui GUI phpMyAdmin (`http://localhost/phpmyadmin`).
-  - Menguji koneksi database lokal dan memastikan migrasi berjalan bersih tanpa galat.
-- **Gate 2:** Seluruh migrasi, relasi Eloquent, dan seeder berhasil dieksekusi pada database lokal yang bersih.
+- **Task 2.4 — Database melalui phpMyAdmin (Selesai):**
+  - Dokumentasikan panduan pembuatan database melalui GUI phpMyAdmin di `docs/DATABASE_SETUP.md`.
+  - Menguji koneksi database lokal dan memastikan migrasi serta seeder berjalan bersih tanpa galat.
+- **Gate 2:** Seluruh migrasi, relasi Eloquent, dan seeder berhasil dieksekusi pada database lokal yang bersih. (LULUS)
 
 ### Fase 3 — Autentikasi dan Otorisasi
 - **Task 3.1 — Login/logout:**
@@ -432,7 +444,7 @@ Sesuai ketentuan `ENGINEERING_STANDARDS.md`, sebuah fase atau gate **hanya boleh
 |:---:|:---|:---|
 | **Gate 0** | Audit & Backup | Lingkungan diperiksa lengkap di `docs/ENVIRONMENT_AUDIT.md` dan snapshot cadangan terverifikasi di `docs/BACKUP_RESTORE.md`. *(Status: LULUS)* |
 | **Gate 1** | Fondasi Laravel | Proyek Laravel 12 terpasang, konfigurasi `.env` lokal aktif, aset statis offline tersedia di `public/`, dan aplikasi terbuka di browser. |
-| **Gate 2** | Skema Database | 9 migrasi sukses dijalankan di MariaDB lokal, seluruh Model memiliki relasi Eloquent & casts yang tepat, dan seeder data awal terisi. |
+| **Gate 2** | Skema Database | Migrasi 10 tabel inti sukses dijalankan di MariaDB lokal, seluruh Model memiliki relasi Eloquent & casts yang tepat, dan seeder data awal terisi. |
 | **Gate 3** | Autentikasi & RBAC | Kasir dan Admin dapat login/logout, rute terlindungi middleware server-side, URL terlarang menghasilkan 403 Forbidden. |
 | **Gate 4** | Design System | Tampilan Glassmorphism biru-putih rapi, kontras teks memenuhi standar WCAG AA, responsif di layar kasir, nol CDN eksternal. |
 | **Gate 5** | Master Data | CRUD pelanggan dan layanan berfungsi dengan validasi server, kode pelanggan otomatis terbuat, penghapusan data bersejarah dicegah. |

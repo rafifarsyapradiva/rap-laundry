@@ -76,44 +76,44 @@ Jangan menandai task sebagai `[x]` jika belum diverifikasi.
 ## Fase 2 — Desain Database dan Model
 
 ### Task 2.1 — Rancang skema
-- [ ] Buat diagram relasi atau dokumentasi tabel di `docs/DATABASE.md`.
-- [ ] Tentukan relasi antara users, customers, services, orders, order_items, payments, order_status_histories, business_settings, dan activity_logs.
-- [ ] Tentukan foreign key, unique index, index pencarian, nullable fields, serta aturan penghapusan.
-- [ ] Gunakan `DECIMAL` untuk nominal uang dan kuantitas; hindari floating point untuk perhitungan uang.
-- [ ] Tentukan daftar status pesanan dan status pembayaran secara terpusat.
-- [ ] Rancang snapshot harga/nama layanan pada item transaksi agar histori tidak berubah ketika harga master diubah.
+- [x] Buat diagram relasi atau dokumentasi tabel di `docs/DATABASE.md`.
+- [x] Tentukan relasi antara users, customers, services, orders, order_items, payments, order_status_histories, business_settings, dan activity_logs.
+- [x] Tentukan foreign key, unique index, index pencarian, nullable fields, serta aturan penghapusan.
+- [x] Gunakan `DECIMAL` untuk nominal uang dan kuantitas; hindari floating point untuk perhitungan uang.
+- [x] Tentukan daftar status pesanan dan status pembayaran secara terpusat.
+- [x] Rancang snapshot harga/nama layanan pada item transaksi agar histori tidak berubah ketika harga master diubah.
 
 ### Task 2.2 — Buat migration
-- [ ] Buat migration tabel `users` dan role admin/kasir.
-- [ ] Buat migration `customers`.
-- [ ] Buat migration `services`.
-- [ ] Buat migration `orders`.
-- [ ] Buat migration `order_items`.
-- [ ] Buat migration `payments`.
-- [ ] Buat migration `order_status_histories`.
-- [ ] Buat migration `business_settings`.
-- [ ] Buat migration `activity_logs`.
-- [ ] Pastikan urutan migration mengikuti dependensi foreign key.
-- [ ] Jalankan migration pada database pengujian.
-- [ ] Pastikan tidak ada error dan struktur tabel sesuai dokumentasi.
+- [x] Buat migration tabel `users` dan role admin/kasir.
+- [x] Buat migration `customers`.
+- [x] Buat migration `services`.
+- [x] Buat migration `orders`.
+- [x] Buat migration `order_items`.
+- [x] Buat migration `payments`.
+- [x] Buat migration `order_status_histories`.
+- [x] Buat migration `business_settings`.
+- [x] Buat migration `activity_logs`.
+- [x] Pastikan urutan migration mengikuti dependensi foreign key.
+- [x] Jalankan migration pada database pengujian.
+- [x] Pastikan tidak ada error dan struktur tabel sesuai dokumentasi.
 
 ### Task 2.3 — Model dan relasi
-- [ ] Buat model Eloquent untuk semua tabel inti.
-- [ ] Definisikan relasi `belongsTo`, `hasMany`, atau relasi lain yang sesuai.
-- [ ] Tentukan casts untuk tanggal, boolean, JSON, dan nilai desimal.
-- [ ] Terapkan soft delete/arsip untuk data master jika dibutuhkan.
-- [ ] Pastikan transaksi historis tetap dapat dibaca saat pelanggan atau layanan diarsipkan.
-- [ ] Buat factory dan seeder data demo yang aman.
+- [x] Buat model Eloquent untuk semua tabel inti.
+- [x] Definisikan relasi `belongsTo`, `hasMany`, atau relasi lain yang sesuai.
+- [x] Tentukan casts untuk tanggal, boolean, JSON, dan nilai desimal.
+- [x] Terapkan soft delete/arsip untuk data master jika dibutuhkan.
+- [x] Pastikan transaksi historis tetap dapat dibaca saat pelanggan atau layanan diarsipkan.
+- [x] Buat factory dan seeder data demo yang aman.
 
 ### Task 2.4 — Database melalui phpMyAdmin
-- [ ] Dokumentasikan cara membuat database lokal melalui phpMyAdmin.
-- [ ] Dokumentasikan konfigurasi `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, dan `DB_PASSWORD` di `.env`.
-- [ ] Jangan menaruh password nyata di dokumentasi.
-- [ ] Pastikan aplikasi dapat terkoneksi ke database.
-- [ ] Uji migration dan seeder dari command line.
-- [ ] Catat solusi untuk error koneksi umum.
+- [x] Dokumentasikan cara membuat database lokal melalui phpMyAdmin.
+- [x] Dokumentasikan konfigurasi `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, dan `DB_PASSWORD` di `.env`.
+- [x] Jangan menaruh password nyata di dokumentasi.
+- [x] Pastikan aplikasi dapat terkoneksi ke database.
+- [x] Uji migration dan seeder dari command line.
+- [x] Catat solusi untuk error koneksi umum.
 
-**Gate 2:** Semua migration, relasi, dan seeder harus berjalan pada database lokal yang bersih.
+**Gate 2:** Semua migration, relasi, dan seeder harus berjalan pada database lokal yang bersih. (LULUS)
 
 ---
 
