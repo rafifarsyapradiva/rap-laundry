@@ -25,13 +25,13 @@ Jangan menandai task sebagai `[x]` jika belum diverifikasi.
 ## Fase 0 — Audit Proyek dan Backup
 
 ### Task 0.1 — Audit lingkungan
-- [ ] Periksa direktori kerja dan identifikasi apakah proyek Laravel sudah tersedia.
-- [ ] Periksa versi PHP dan pastikan memenuhi persyaratan Laravel 12.
-- [ ] Periksa versi Composer.
-- [ ] Periksa ketersediaan MySQL/MariaDB dan phpMyAdmin.
-- [ ] Periksa Node.js/npm jika diperlukan untuk membangun aset frontend.
-- [ ] Periksa status Git dan perubahan lokal agar pekerjaan pengguna tidak tertimpa.
-- [ ] Catat hasil audit di `docs/ENVIRONMENT_AUDIT.md`.
+- [x] Periksa direktori kerja dan identifikasi apakah proyek Laravel sudah tersedia.
+- [x] Periksa versi PHP dan pastikan memenuhi persyaratan Laravel 12.
+- [x] Periksa versi Composer.
+- [x] Periksa ketersediaan MySQL/MariaDB dan phpMyAdmin.
+- [x] Periksa Node.js/npm jika diperlukan untuk membangun aset frontend.
+- [x] Periksa status Git dan perubahan lokal agar pekerjaan pengguna tidak tertimpa.
+- [x] Catat hasil audit di `docs/ENVIRONMENT_AUDIT.md`.
 
 ### Task 0.2 — Backup sebelum perubahan
 - [ ] Jika folder proyek sudah berisi pekerjaan, buat salinan backup sebelum mengedit file.
