@@ -120,31 +120,31 @@ Jangan menandai task sebagai `[x]` jika belum diverifikasi.
 ## Fase 3 — Autentikasi dan Otorisasi
 
 ### Task 3.1 — Login/logout
-- [ ] Buat halaman login berbahasa Indonesia.
-- [ ] Implementasikan login dengan email/username sesuai desain database.
-- [ ] Terapkan password hashing Laravel.
-- [ ] Terapkan regenerasi session saat login dan invalidasi session saat logout.
-- [ ] Tampilkan pesan error yang jelas tanpa membocorkan detail sensitif.
-- [ ] Pastikan route internal tidak dapat diakses tanpa login.
+- [x] Buat halaman login berbahasa Indonesia.
+- [x] Implementasikan login dengan email/username sesuai desain database.
+- [x] Terapkan password hashing Laravel.
+- [x] Terapkan regenerasi session saat login dan invalidasi session saat logout.
+- [x] Tampilkan pesan error yang jelas tanpa membocorkan detail sensitif.
+- [x] Pastikan route internal tidak dapat diakses tanpa login.
 
 ### Task 3.2 — Role admin dan kasir
-- [ ] Implementasikan middleware, policy, atau mekanisme otorisasi server-side.
-- [ ] Admin dapat mengakses pengaturan dan manajemen pengguna.
-- [ ] Kasir hanya dapat mengakses fitur operasional yang diizinkan.
-- [ ] Uji akses langsung melalui URL, bukan hanya melalui tombol menu.
-- [ ] Buat akun awal melalui seeder/setup yang terdokumentasi.
-- [ ] Jangan gunakan password default yang mudah ditebak di lingkungan produksi.
+- [x] Implementasikan middleware, policy, atau mekanisme otorisasi server-side.
+- [x] Admin dapat mengakses pengaturan dan manajemen pengguna.
+- [x] Kasir hanya dapat mengakses fitur operasional yang diizinkan.
+- [x] Uji akses langsung melalui URL, bukan hanya melalui tombol menu.
+- [x] Buat akun awal melalui seeder/setup yang terdokumentasi.
+- [x] Jangan gunakan password default yang mudah ditebak di lingkungan produksi.
 
 ### Task 3.3 — Keamanan dasar
-- [ ] Pastikan operasi perubahan data menggunakan metode HTTP yang tepat.
-- [ ] Pastikan CSRF protection aktif untuk form.
-- [ ] Validasi input pada server.
-- [ ] Escape output Blade untuk mencegah XSS.
-- [ ] Gunakan Eloquent/Query Builder atau parameter binding, bukan query mentah yang menggabungkan input pengguna.
-- [ ] Terapkan pembatasan akses pada ekspor laporan dan audit log.
-- [ ] Tambahkan pengujian autentikasi dan otorisasi.
+- [x] Pastikan operasi perubahan data menggunakan metode HTTP yang tepat.
+- [x] Pastikan CSRF protection aktif untuk form.
+- [x] Validasi input pada server.
+- [x] Escape output Blade untuk mencegah XSS.
+- [x] Gunakan Eloquent/Query Builder atau parameter binding, bukan query mentah yang menggabungkan input pengguna.
+- [x] Terapkan pembatasan akses pada ekspor laporan dan audit log.
+- [x] Tambahkan pengujian autentikasi dan otorisasi.
 
-**Gate 3:** Uji login, logout, akses tanpa login, dan pembatasan hak akses sebelum lanjut.
+**Gate 3:** Uji login, logout, akses tanpa login, dan pembatasan hak akses sebelum lanjut. (LULUS)
 
 ---
 
