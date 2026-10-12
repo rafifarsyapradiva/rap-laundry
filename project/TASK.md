@@ -54,22 +54,22 @@ Jangan menandai task sebagai `[x]` jika belum diverifikasi.
 - [x] Buat `docs/IMPLEMENTATION_PLAN.md`.
 
 ### Task 1.2 — Siapkan aplikasi
-- [ ] Jika proyek belum ada, buat proyek Laravel 12 sesuai lingkungan.
-- [ ] Jika proyek sudah ada, periksa versi Laravel dan struktur sebelum mengubahnya.
-- [ ] Pastikan aplikasi dapat dijalankan secara lokal.
-- [ ] Pastikan konfigurasi environment tidak berisi kredensial hardcoded.
-- [ ] Siapkan `.env.example` tanpa password atau token asli.
-- [ ] Verifikasi halaman awal Laravel dan log error.
-- [ ] Catat perintah setup yang berhasil di `README.md`.
+- [x] Jika proyek belum ada, buat proyek Laravel 12 sesuai lingkungan.
+- [x] Jika proyek sudah ada, periksa versi Laravel dan struktur sebelum mengubahnya.
+- [x] Pastikan aplikasi dapat dijalankan secara lokal.
+- [x] Pastikan konfigurasi environment tidak berisi kredensial hardcoded.
+- [x] Siapkan `.env.example` tanpa password atau token asli.
+- [x] Verifikasi halaman awal Laravel dan log error.
+- [x] Catat perintah setup yang berhasil di `README.md`.
 
 ### Task 1.3 — Dependensi dan aset offline
-- [ ] Pilih dependensi frontend yang benar-benar dibutuhkan.
-- [ ] Hindari CDN, Google Fonts, API eksternal, dan aset yang harus diunduh saat aplikasi dipakai.
-- [ ] Jika menggunakan Vite, bangun aset dan pastikan hasil build tersedia di `public/`.
-- [ ] Pastikan aplikasi tetap dapat memuat CSS, JavaScript, dan ikon tanpa internet.
-- [ ] Sediakan fallback tampilan jika `backdrop-filter` tidak didukung browser.
+- [x] Pilih dependensi frontend yang benar-benar dibutuhkan.
+- [x] Hindari CDN, Google Fonts, API eksternal, dan aset yang harus diunduh saat aplikasi dipakai.
+- [x] Jika menggunakan Vite, bangun aset dan pastikan hasil build tersedia di `public/`.
+- [x] Pastikan aplikasi tetap dapat memuat CSS, JavaScript, dan ikon tanpa internet.
+- [x] Sediakan fallback tampilan jika `backdrop-filter` tidak didukung browser.
 
-**Gate 1:** Aplikasi Laravel harus dapat berjalan di lokal sebelum fitur bisnis dibuat.
+**Gate 1:** Aplikasi Laravel harus dapat berjalan di lokal sebelum fitur bisnis dibuat. (LULUS)
 
 ---
 
