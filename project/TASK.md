@@ -34,12 +34,12 @@ Jangan menandai task sebagai `[x]` jika belum diverifikasi.
 - [x] Catat hasil audit di `docs/ENVIRONMENT_AUDIT.md`.
 
 ### Task 0.2 — Backup sebelum perubahan
-- [ ] Jika folder proyek sudah berisi pekerjaan, buat salinan backup sebelum mengedit file.
-- [ ] Simpan backup di folder terpisah, misalnya `backups/pre-implementation-YYYYMMDD-HHmm/`.
-- [ ] Pastikan file penting dan konfigurasi yang dibutuhkan untuk pemulihan tercakup.
-- [ ] Jangan memasukkan kredensial rahasia ke repositori atau arsip yang dibagikan.
-- [ ] Periksa bahwa backup benar-benar ada dan dapat dibaca.
-- [ ] Catat lokasi backup dan cara pemulihannya di `docs/BACKUP_RESTORE.md`.
+- [x] Jika folder proyek sudah berisi pekerjaan, buat salinan backup sebelum mengedit file.
+- [x] Simpan backup di folder terpisah, misalnya `backups/pre-implementation-YYYYMMDD-HHmm/`.
+- [x] Pastikan file penting dan konfigurasi yang dibutuhkan untuk pemulihan tercakup.
+- [x] Jangan memasukkan kredensial rahasia ke repositori atau arsip yang dibagikan.
+- [x] Periksa bahwa backup benar-benar ada dan dapat dibaca.
+- [x] Catat lokasi backup dan cara pemulihannya di `docs/BACKUP_RESTORE.md`.
 
 **Gate 0:** Jangan lanjut ke perubahan destruktif sebelum backup diverifikasi jika proyek sudah ada.
 
