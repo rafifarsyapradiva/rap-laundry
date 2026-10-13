@@ -166,30 +166,32 @@ Jangan mengunci harga di dalam kode. Harga diambil dari master layanan. Simpan s
 ### 5.5 Pembuatan Pesanan Laundry
 Form pesanan memuat:
 - Nomor transaksi otomatis dan unik, misalnya `LD-YYYYMMDD-0001`.
-- Tanggal dan waktu masuk.
-- Pelanggan yang sudah ada atau pembuatan pelanggan baru.
-- Satu atau lebih detail layanan.
+- Tanggal dan waktu masuk (`received_at`, default: saat ini).
+- Pelanggan yang sudah ada atau pembuatan pelanggan baru seketika.
+- Satu atau lebih detail layanan (multi-item dinamis).
 - Kuantitas/berat sesuai satuan layanan.
-- Harga satuan.
+- Harga satuan (snapshot dari master layanan).
 - Subtotal per detail.
-- Diskon opsional, dengan batasan dan izin yang sesuai.
-- Biaya tambahan opsional.
-- Total transaksi.
+- Diskon opsional, dengan batasan dan izin yang ditentukan.
+- Biaya tambahan opsional (express/ongkir/perlakuan khusus).
+- Total transaksi (dihitung ulang di server).
 - Uang muka/pembayaran awal opsional.
 - Sisa tagihan.
-- Estimasi selesai.
-- Catatan khusus.
-- Petugas yang menerima pesanan.
+- Estimasi selesai (otomatis dan dapat disesuaikan).
+- Catatan khusus pesanan dan catatan per item.
+- Petugas yang menerima pesanan (otomatis dari pengguna aktif yang sedang login).
 
-Ketentuan:
-- Untuk layanan berbasis kilogram, dukung berat desimal, misalnya `2,5 kg`.
-- Untuk layanan per item, kuantitas berupa bilangan positif.
-- Validasi kuantitas harus lebih besar dari nol.
-- Hitung total di server, bukan hanya JavaScript di browser.
-- Nilai uang harus disimpan dengan tipe `DECIMAL`, bukan floating point.
-- Nomor transaksi harus unik dan aman dari duplikasi saat dua pengguna membuat pesanan bersamaan.
-- Setelah pesanan disimpan, tampilkan halaman detail dan opsi cetak nota.
-- Jika pesanan gagal disimpan, jangan meninggalkan data transaksi parsial. Gunakan database transaction.
+Ketentuan operasional dan teknis jangka panjang:
+- **Pelanggan Cepat (In-Place Quick Add):** Disediakan modal dialog untuk menambah pelanggan baru langsung dari form pesanan via AJAX lokal tanpa me-refresh halaman, sehingga data baris layanan yang telah diisi tidak hilang.
+- **Kuantitas Desimal dan Bilangan Bulat:** Untuk layanan berbasis kilogram (`kg`), wajib mendukung bilangan desimal (misal `2,5 kg` atau `3,75 kg`) dengan presisi 2 angka di belakang koma. Sistem otomatis menormalisasi tanda koma (`,`) menjadi titik (`.`). Untuk layanan per item atau paket, kuantitas berupa bilangan bulat positif (`integer`).
+- **Validasi Kuantitas:** Kuantitas harus lebih besar dari nol (`quantity > 0`).
+- **Estimasi Selesai Otomatis & Presets:** Estimasi selesai dihitung otomatis berdasarkan durasi terlama dari layanan yang dipilih (`received_at + max(service.estimated_hours)`) atau konfigurasi default usaha (`default_estimated_hours`), disertai tombol pintas praktis (`+1 Hari`, `+2 Hari`, `+3 Hari`) dan opsi penyesuaian manual kasir.
+- **Kebijakan Diskon Berbasis Konfigurasi Usaha:** Diskon dikontrol melalui konfigurasi dinamis `cashier_max_discount_percent` di pengaturan usaha (default: 20%). Staf kasir dibatasi maksimal persentase tersebut dari subtotal, sedangkan Admin/Pemilik memiliki izin diskon penuh hingga 100%. Diskon tidak boleh melebihi subtotal (`0 ≤ discount_amount ≤ subtotal`).
+- **Biaya Tambahan:** Kasir dan Admin dapat menambahkan biaya tambahan non-negatif (`extra_charge ≥ 0`) dengan input rupiah bulat.
+- **Integritas Finansial Server-Side:** Hitung ulang seluruh subtotal, diskon, biaya tambahan, dan total di server. Jangan mempercayai kalkulasi dari browser. Nilai moneter disimpan dengan tipe `DECIMAL(12,2)`.
+- **Nomor Transaksi Unik:** Nomor transaksi harus unik dan aman dari tabrakan saat diakses bersamaan melalui mekanisme *pessimistic locking* pada tabel `number_sequences`.
+- **Atomisitas Database:** Gunakan `DB::transaction` saat menyimpan pesanan dan seluruh detail itemnya.
+- **Pencegahan Double-Submission:** Tombol submit dinonaktifkan otomatis saat proses simpan berlangsung untuk mencegah pembuatan pesanan ganda.
 
 ### 5.6 Alur Status Cucian
 Gunakan status yang konsisten:

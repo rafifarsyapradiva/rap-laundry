@@ -24,6 +24,8 @@ class BusinessSetting extends Model
 
     public const KEY_OPERATING_HOURS = 'operating_hours';
 
+    public const KEY_CASHIER_MAX_DISCOUNT_PERCENT = 'cashier_max_discount_percent';
+
     protected $fillable = [
         'setting_key',
         'setting_value',

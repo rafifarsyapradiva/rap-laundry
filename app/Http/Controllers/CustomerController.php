@@ -7,6 +7,7 @@ use App\Http\Requests\Customer\UpdateCustomerRequest;
 use App\Models\Customer;
 use App\Services\CustomerService;
 use DomainException;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -59,12 +60,27 @@ class CustomerController extends Controller
     /**
      * Simpan data pelanggan baru ke database.
      */
-    public function store(StoreCustomerRequest $request): RedirectResponse
+    public function store(StoreCustomerRequest $request): RedirectResponse|JsonResponse
     {
         $customer = $this->customerService->createCustomer(
             data: $request->validated(),
             actor: $request->user()
         );
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'customer' => [
+                    'id' => $customer->id,
+                    'customer_code' => $customer->customer_code,
+                    'name' => $customer->name,
+                    'phone' => $customer->phone,
+                    'formatted_phone' => $customer->formatted_phone,
+                    'address' => $customer->address,
+                ],
+                'message' => "Pelanggan {$customer->name} ({$customer->customer_code}) berhasil didaftarkan.",
+            ], 201);
+        }
 
         return redirect()
             ->route('customers.show', $customer)

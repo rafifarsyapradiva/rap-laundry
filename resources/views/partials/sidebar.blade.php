@@ -21,7 +21,7 @@
                     </a>
                 </li>
                 <li>
-                    <a href="{{ Route::has('orders.index') ? route('orders.index') : '#' }}" class="nav-link {{ request()->routeIs('orders*') ? 'active' : '' }}">
+                    <a href="{{ Route::has('orders.index') ? route('orders.index') : (Route::has('orders.create') ? route('orders.create') : '#') }}" class="nav-link {{ request()->routeIs('orders*') ? 'active' : '' }}">
                         <x-icon name="orders" size="18" />
                         <span>Pesanan Cucian</span>
                     </a>

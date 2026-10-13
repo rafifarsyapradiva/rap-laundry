@@ -212,14 +212,14 @@ Jangan menandai task sebagai `[x]` jika belum diverifikasi.
 ## Fase 6 — Pembuatan Transaksi Laundry
 
 ### Task 6.1 — Form pesanan
-- [ ] Buat form pesanan baru.
-- [ ] Pilih pelanggan atau tambahkan pelanggan baru tanpa kehilangan data pesanan.
-- [ ] Dukung beberapa item layanan dalam satu pesanan.
-- [ ] Tampilkan satuan dan harga berdasarkan master layanan.
-- [ ] Dukung kuantitas desimal untuk layanan berbasis kilogram.
-- [ ] Validasi kuantitas harus lebih besar dari nol.
-- [ ] Sediakan estimasi selesai dan catatan opsional.
-- [ ] Sediakan diskon dan biaya tambahan sesuai izin yang ditentukan.
+- [x] Buat form pesanan baru.
+- [x] Pilih pelanggan atau tambahkan pelanggan baru tanpa kehilangan data pesanan.
+- [x] Dukung beberapa item layanan dalam satu pesanan.
+- [x] Tampilkan satuan dan harga berdasarkan master layanan.
+- [x] Dukung kuantitas desimal untuk layanan berbasis kilogram.
+- [x] Validasi kuantitas harus lebih besar dari nol.
+- [x] Sediakan estimasi selesai dan catatan opsional.
+- [x] Sediakan diskon dan biaya tambahan sesuai izin yang ditentukan.
 
 ### Task 6.2 — Logika perhitungan
 - [ ] Hitung subtotal setiap item di server.

@@ -250,8 +250,9 @@ Sistem offline bukan alasan untuk mengabaikan keamanan (*offline does not mean u
 
 ### 6.2 Otorisasi Berbasis Peran (RBAC)
 Pemisahan hak akses antara **Admin (Pemilik)** dan **Kasir (Staf)** ditegakkan di sisi server melalui Laravel Middleware dan Policy:
-- **Admin:** Memiliki akses penuh terhadap dashboard, konfigurasi usaha, master layanan & harga, manajemen user/kasir, pembatalan transaksi, void pembayaran, dan ekspor seluruh laporan keuangan.
+- **Admin:** Memiliki akses penuh terhadap dashboard, konfigurasi usaha, master layanan & harga, manajemen user/kasir, pembatalan transaksi, void pembayaran, ekspor seluruh laporan keuangan, dan pemberian diskon hingga 100% (subtotal).
 - **Kasir:** Terbatas pada operasional harian: registrasi pelanggan, pembuatan pesanan laundry, pengkinian status cucian harian, pencatatan pembayaran tunai/manual, dan cetak nota transaksi. Kasir dilarang mengakses manajemen pengguna, pengaturan sistem, atau manipulasi master tarif.
+- **Batasan Izin Diskon Kasir:** Diskon oleh kasir dibatasi oleh pengaturan usaha `cashier_max_discount_percent` (default 20%). Diskon melebihi batas tersebut ditolak oleh validasi server dan memerlukan wewenang Admin.
 - **Prinsip Validasi Server:** Menyembunyikan tombol di Blade hanyalah kenyamanan UI. Otorisasi sesungguhnya wajib divalidasi pada Form Request atau Policy di server.
 
 ### 6.3 Pencegahan Kerentanan Klasik
@@ -266,10 +267,13 @@ Pemisahan hak akses antara **Admin (Pemilik)** dan **Kasir (Staf)** ditegakkan d
 
 ### 7.1 Alur Transaksi dan Pemesanan
 1. Setiap pesanan memiliki identitas unik berupa nomor transaksi berurutan: `LD-YYYYMMDD-0001`.
-2. Pesanan terikat pada satu pelanggan yang valid (pelanggan lama atau dibuat seketika saat pemesanan).
-3. Pesanan dapat memiliki satu atau lebih item layanan.
+2. Pesanan terikat pada satu pelanggan yang valid (pelanggan lama atau dibuat seketika saat pemesanan). Penambahan pelanggan baru dari form pesanan didukung via modal in-place AJAX lokal sehingga baris pesanan yang telah diinput tidak hilang.
+3. Pesanan dapat memiliki satu atau lebih item layanan dinamis.
 4. **Snapshot Tarif & Layanan:** Saat item pesanan disimpan ke `order_items`, sistem wajib mencatat snapshot nama layanan, satuan, dan tarif per unit pada saat transaksi dibuat. Perubahan harga master layanan di kemudian hari tidak boleh mengubah kalkulasi pada nota pesanan terdahulu.
-5. Berat cucian berbasis kilogram wajib mendukung bilangan desimal (misal: 2,5 kg atau 3,75 kg) dengan presisi 2 angka di belakang koma.
+5. Berat cucian berbasis kilogram wajib mendukung bilangan desimal (misal: 2,5 kg atau 3,75 kg) dengan presisi 2 angka di belakang koma. Sistem otomatis menormalisasi pemisah koma (`,`) menjadi titik (`.`). Kuantitas non-kilogram wajib bilangan bulat positif.
+6. Kuantitas pada setiap baris item wajib bernilai lebih besar dari nol (`quantity > 0`).
+7. **Kalkulasi Estimasi Waktu Selesai:** Estimasi selesai dihitung otomatis berdasarkan durasi terlama dari layanan yang dipilih (`received_at + max(service.estimated_hours)`) atau konfigurasi default usaha, serta dapat disesuaikan manual oleh kasir via input atau tombol pintas cepat (+1 Hari, +2 Hari, +3 Hari).
+8. **Diskon & Biaya Tambahan:** Diskon dikontrol oleh batas izin peran (`0 ≤ discount_amount ≤ subtotal`), sedangkan biaya tambahan non-negatif (`extra_charge ≥ 0`) dapat diisi oleh kasir dan admin untuk kebutuhan express atau antar-jemput.
 
 ### 7.2 Pemisahan Status Cucian vs Status Pembayaran
 Status cucian dan status pembayaran adalah dua domain independen yang tidak boleh disatukan:
