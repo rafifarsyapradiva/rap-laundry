@@ -451,7 +451,7 @@ Sesuai ketentuan `ENGINEERING_STANDARDS.md`, sebuah fase atau gate **hanya boleh
 | **Gate 6** | Transaksi Order | Pembuatan order multi-layanan berhasil, nomor `LD-YYYYMMDD-0001` unik, snapshot harga tersimpan, kalkulasi uang dihitung ulang di server via DB Transaction. |
 | **Gate 7** | Status Cucian | 8 tahapan status berjalan logis, riwayat status tercatat di timeline pesanan, status cucian terpisah dari status pembayaran. |
 | **Gate 8** | Pembayaran Kas | Kas masuk tercatat akurat, sisa tagihan terhitung otomatis, overpayment ditolak, mekanisme void pembayaran berfungsi dengan audit log. |
-| **Gate 9** | Nota Cetak | Tampilan cetak `@media print` rapi tanpa navigasi website, mendukung format thermal dan A4, informasi finansial identik dengan database. |
+| **Gate 9** | Nota Cetak | Tampilan cetak `@media print` rapi tanpa navigasi website, mendukung format thermal dan A4, informasi finansial identik dengan database. *(Status: LULUS)* |
 | **Gate 10** | Dashboard & Laporan | Statistik dashboard dihitung dari database riil, laporan kas masuk akurat berbasis tanggal bayar valid, ekspor CSV berfungsi aman. |
 | **Gate 11** | Pengaturan & Audit | Identitas usaha dapat diubah dan tampil di nota, aktivitas sensitif tercatat di `activity_logs`, manajemen staf kasir terkendali. |
 | **Gate 12** | QA & Offline Ready | Seluruh automated test lulus (`php artisan test`), audit keamanan lulus (CSRF, XSS, SQLi), dan aplikasi teruji lancar saat internet dimatikan total. |

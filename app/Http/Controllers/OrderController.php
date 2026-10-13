@@ -11,6 +11,7 @@ use App\Models\BusinessSetting;
 use App\Models\Customer;
 use App\Models\Order;
 use App\Models\Service;
+use App\Services\InvoiceService;
 use App\Services\OrderService;
 use DomainException;
 use Illuminate\Http\RedirectResponse;
@@ -99,6 +100,32 @@ class OrderController extends Controller
         $paymentMethods = \App\Enums\PaymentMethod::cases();
 
         return view('orders.show', compact('order', 'paymentMethods'));
+    }
+
+    /**
+     * Tampilkan halaman nota pesanan yang ramah cetak (A4 atau Struk Thermal).
+     */
+    public function print(
+        Request $request,
+        Order $order,
+        InvoiceService $invoiceService
+    ): View {
+        Gate::authorize('view', $order);
+
+        $defaultFormat = BusinessSetting::get(BusinessSetting::KEY_PRINT_FORMAT, 'a4');
+        $format = $request->query('format', $defaultFormat);
+
+        if (! in_array($format, ['thermal', 'a4'], true)) {
+            $format = 'a4';
+        }
+
+        $autoPrint = $request->boolean('auto_print', false);
+        $invoiceData = $invoiceService->getInvoiceData($order);
+
+        return view('orders.print', array_merge($invoiceData, [
+            'currentFormat' => $format,
+            'autoPrint' => $autoPrint,
+        ]));
     }
 
     /**

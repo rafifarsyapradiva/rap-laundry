@@ -321,17 +321,17 @@ Jangan menandai task sebagai `[x]` jika belum diverifikasi.
 
 ## Fase 9 — Nota dan Cetak
 
-- [ ] Buat tampilan nota yang dapat dicetak.
-- [ ] Tampilkan nama usaha, nomor transaksi, pelanggan, tanggal, layanan, kuantitas, harga, subtotal, diskon, biaya tambahan, total, pembayaran, dan saldo.
-- [ ] Tampilkan status cucian dan pembayaran.
-- [ ] Tampilkan estimasi selesai dan catatan penting.
-- [ ] Buat CSS `@media print`.
-- [ ] Sembunyikan sidebar, topbar, tombol, dan elemen yang tidak perlu saat mencetak.
-- [ ] Pastikan nota tetap bisa dicetak tanpa koneksi internet.
-- [ ] Uji cetak A4 dan format nota ringkas jika disediakan.
-- [ ] Uji cetak ulang transaksi lama.
+- [x] Buat tampilan nota yang dapat dicetak (mendukung dual format: Struk Thermal 58/80mm dan Faktur A4).
+- [x] Tampilkan nama usaha, nomor transaksi, pelanggan, tanggal, layanan, kuantitas, harga, subtotal, diskon, biaya tambahan, total, pembayaran, dan saldo.
+- [x] Tampilkan status cucian dan pembayaran (dilengkapi stempel LUNAS / BELUM LUNAS).
+- [x] Tampilkan estimasi selesai dan catatan penting (termasuk klausul footer syarat pengambilan usaha).
+- [x] Buat CSS `@media print` (dioptimalkan untuk format A4 dan Struk Thermal, bebas bayangan & hemat tinta).
+- [x] Sembunyikan sidebar, topbar, tombol, dan elemen yang tidak perlu saat mencetak.
+- [x] Pastikan nota tetap bisa dicetak tanpa koneksi internet (100% mandiri lokal, zero external assets).
+- [x] Uji cetak A4 dan format nota ringkas jika disediakan (format switcher terverifikasi).
+- [x] Uji cetak ulang transaksi lama (snapshot layanan melindungi histori dari perubahan tarif master).
 
-**Gate 9:** Data pada nota harus sama dengan data transaksi di database.
+**Gate 9:** Data pada nota harus sama dengan data transaksi di database. (LULUS)
 
 ---
 

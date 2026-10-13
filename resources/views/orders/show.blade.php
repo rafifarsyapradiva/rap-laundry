@@ -12,10 +12,10 @@
             <span>Kembali ke Buat Pesanan</span>
         </a>
         <div style="display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap;">
-            <button type="button" class="btn btn-secondary btn-sm" onclick="window.print()" title="Cetak nota pesanan kasir">
+            <a href="{{ route('orders.print', $order) }}" class="btn btn-secondary btn-sm" target="_blank" title="Buka pratinjau dan cetak nota kasir">
                 <x-icon name="reports" size="14" />
                 <span>Cetak Nota</span>
-            </button>
+            </a>
             <a href="{{ route('orders.create') }}" class="btn btn-primary btn-sm">
                 <x-icon name="plus" size="14" />
                 <span>+ Pesanan Baru</span>
@@ -104,11 +104,15 @@
                 </div>
             </div>
 
-            <div style="display: flex; gap: var(--space-3); align-items: center;" class="no-print">
-                <button type="button" class="btn btn-secondary btn-sm" onclick="window.print()">
+            <div style="display: flex; gap: var(--space-2); align-items: center; flex-wrap: wrap;" class="no-print">
+                <a href="{{ route('orders.print', [$order, 'format' => 'thermal']) }}" class="btn btn-secondary btn-sm" target="_blank" title="Cetak format struk kasir thermal (58/80mm)">
                     <x-icon name="reports" size="14" />
-                    <span>Cetak Nota</span>
-                </button>
+                    <span>Struk Thermal</span>
+                </a>
+                <a href="{{ route('orders.print', [$order, 'format' => 'a4']) }}" class="btn btn-secondary btn-sm" target="_blank" title="Cetak format faktur resmi A4">
+                    <x-icon name="reports" size="14" />
+                    <span>Faktur A4</span>
+                </a>
             </div>
         </div>
 
@@ -788,10 +792,14 @@
                     Aksi Transaksi
                 </h3>
                 <div style="display: flex; flex-direction: column; gap: var(--space-2);">
-                    <button type="button" class="btn btn-secondary btn-sm" style="width: 100%;" onclick="window.print()">
+                    <a href="{{ route('orders.print', [$order, 'format' => 'thermal']) }}" class="btn btn-secondary btn-sm" style="width: 100%;" target="_blank" title="Cetak struk thermal POS 58mm/80mm">
                         <x-icon name="reports" size="14" />
-                        <span>Cetak Nota Transaksi</span>
-                    </button>
+                        <span>Cetak Struk Thermal (POS)</span>
+                    </a>
+                    <a href="{{ route('orders.print', [$order, 'format' => 'a4']) }}" class="btn btn-secondary btn-sm" style="width: 100%;" target="_blank" title="Cetak faktur resmi standar A4">
+                        <x-icon name="reports" size="14" />
+                        <span>Cetak Faktur Standar (A4)</span>
+                    </a>
                     <a href="{{ route('orders.create') }}" class="btn btn-primary btn-sm" style="width: 100%;">
                         <x-icon name="plus" size="14" />
                         <span>Buat Pesanan Baru</span>

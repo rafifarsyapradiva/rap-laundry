@@ -1351,6 +1351,7 @@ body {
     .sidebar,
     .btn,
     .no-print,
+    .print-toolbar,
     .filter-bar,
     .pagination-wrap,
     .modal-backdrop,
@@ -1384,4 +1385,28 @@ body {
     .print-only {
         display: block !important;
     }
+
+    .print-viewport {
+        padding: 0 !important;
+        margin: 0 !important;
+        display: block !important;
+    }
+
+    .paper-sheet {
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 100% !important;
+    }
+
+    .a4-header,
+    .a4-meta-grid,
+    .a4-table-container,
+    .a4-bottom-grid,
+    .a4-signatures-grid,
+    .thermal-receipt {
+        page-break-inside: avoid;
+    }
 }
+
