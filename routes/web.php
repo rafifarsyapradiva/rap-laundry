@@ -2,8 +2,10 @@
 
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ServiceController;
 use Illuminate\Support\Facades\Route;
 
@@ -30,11 +32,10 @@ Route::middleware('auth')->group(function () {
 
     // Rute operasional harian (dapat diakses Kasir dan Admin)
     Route::middleware('role:admin,kasir')->group(function () {
-        Route::get('/dashboard', function () {
-            return view('dashboard.index');
-        })->name('dashboard');
+        Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-        // Modul Transaksi Pembuatan Pesanan Laundry
+        // Modul Transaksi Pembuatan dan Pengelolaan Pesanan Laundry
+        Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
         Route::get('/orders/create', [OrderController::class, 'create'])->name('orders.create');
         Route::post('/orders', [OrderController::class, 'store'])->name('orders.store');
         Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
@@ -61,6 +62,14 @@ Route::middleware('auth')->group(function () {
 
     // Rute administratif khusus pemilik / Admin
     Route::middleware('role:admin')->prefix('admin')->name('admin.')->group(function () {
+        // Modul Laporan dan Analitik Keuangan
+        Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
+        Route::get('/reports/orders/export', [ReportController::class, 'exportOrdersCsv'])->name('reports.orders.export');
+        Route::get('/reports/payments/export', [ReportController::class, 'exportPaymentsCsv'])->name('reports.payments.export');
+        Route::get('/reports/export', function () {
+            return view('admin.reports.export');
+        })->name('reports.export');
+
         Route::get('/users', function () {
             return view('admin.users.index');
         })->name('users.index');
@@ -73,9 +82,5 @@ Route::middleware('auth')->group(function () {
             $logs = \App\Models\ActivityLog::with('user')->latest()->paginate(15);
             return view('admin.audit-logs.index', compact('logs'));
         })->name('audit-logs.index');
-
-        Route::get('/reports/export', function () {
-            return view('admin.reports.export');
-        })->name('reports.export');
     });
 });

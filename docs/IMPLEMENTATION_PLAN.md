@@ -395,7 +395,7 @@ graph TD
   - Fitur ekspor CSV aman dengan pembatasan hak akses Admin.
 - **Task 10.4 — Pengujian laporan:**
   - Verifikasi bahwa pembayaran yang divoid tidak dihitung sebagai uang masuk.
-- **Gate 10:** Angka pada dashboard dan laporan dapat diverifikasi silang ke baris database individual.
+- **Gate 10:** Angka pada dashboard dan laporan dapat diverifikasi silang ke baris database individual. (LULUS)
 
 ### Fase 11 — Pengaturan Usaha dan Audit Log
 - **Task 11.1 — Pengaturan usaha:**
@@ -452,7 +452,7 @@ Sesuai ketentuan `ENGINEERING_STANDARDS.md`, sebuah fase atau gate **hanya boleh
 | **Gate 7** | Status Cucian | 8 tahapan status berjalan logis, riwayat status tercatat di timeline pesanan, status cucian terpisah dari status pembayaran. |
 | **Gate 8** | Pembayaran Kas | Kas masuk tercatat akurat, sisa tagihan terhitung otomatis, overpayment ditolak, mekanisme void pembayaran berfungsi dengan audit log. |
 | **Gate 9** | Nota Cetak | Tampilan cetak `@media print` rapi tanpa navigasi website, mendukung format thermal dan A4, informasi finansial identik dengan database. *(Status: LULUS)* |
-| **Gate 10** | Dashboard & Laporan | Statistik dashboard dihitung dari database riil, laporan kas masuk akurat berbasis tanggal bayar valid, ekspor CSV berfungsi aman. |
+| **Gate 10** | Dashboard & Laporan | Statistik dashboard dihitung dari database riil, laporan kas masuk akurat berbasis tanggal bayar valid, ekspor CSV berfungsi aman. *(Status: LULUS)* |
 | **Gate 11** | Pengaturan & Audit | Identitas usaha dapat diubah dan tampil di nota, aktivitas sensitif tercatat di `activity_logs`, manajemen staf kasir terkendali. |
 | **Gate 12** | QA & Offline Ready | Seluruh automated test lulus (`php artisan test`), audit keamanan lulus (CSRF, XSS, SQLi), dan aplikasi teruji lancar saat internet dimatikan total. |
 | **Gate 13** | Rilis & Dokumentasi | `README.md`, `TEST_REPORT.md`, dan panduan backup/restore lengkap; instruksi phpMyAdmin diverifikasi berhasil dijalankan. |

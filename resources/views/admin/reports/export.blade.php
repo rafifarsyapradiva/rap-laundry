@@ -34,5 +34,26 @@
             hint="Kasir dibatasi dari akses data finansial agregat"
         />
     </div>
+
+    <!-- Hub Navigasi Cepat Laporan & Ekspor -->
+    <div class="glass-card" style="padding: var(--space-6);">
+        <h3 style="font-size: var(--text-base); font-weight: var(--font-bold); color: var(--text-main); margin-bottom: var(--space-4);">
+            Pusat Unduhan & Dasbor Analitik
+        </h3>
+        <div style="display: flex; gap: var(--space-3); flex-wrap: wrap;">
+            <a href="{{ route('admin.reports.index') }}" class="btn btn-primary">
+                <x-icon name="reports" size="16" />
+                <span>Buka Dasbor Laporan Lengkap</span>
+            </a>
+            <a href="{{ route('admin.reports.orders.export') }}" class="btn btn-secondary">
+                <x-icon name="orders" size="16" />
+                <span>Unduh CSV Riwayat Transaksi</span>
+            </a>
+            <a href="{{ route('admin.reports.payments.export') }}" class="btn btn-secondary">
+                <x-icon name="payments" size="16" />
+                <span>Unduh CSV Buku Kas Masuk</span>
+            </a>
+        </div>
+    </div>
 </div>
 @endsection

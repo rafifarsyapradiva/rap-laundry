@@ -53,7 +53,7 @@
                 <div class="sidebar-section-title">Manajemen Pemilik</div>
                 <ul class="sidebar-nav">
                     <li>
-                        <a href="{{ Route::has('admin.reports.export') ? route('admin.reports.export') : '#' }}" class="nav-link {{ request()->routeIs('*reports*') ? 'active' : '' }}">
+                        <a href="{{ route('admin.reports.index') }}" class="nav-link {{ request()->routeIs('*reports*') ? 'active' : '' }}">
                             <x-icon name="reports" size="18" />
                             <span>Laporan Keuangan</span>
                         </a>

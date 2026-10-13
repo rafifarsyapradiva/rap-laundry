@@ -338,44 +338,44 @@ Jangan menandai task sebagai `[x]` jika belum diverifikasi.
 ## Fase 10 — Dashboard, Pencarian, dan Laporan
 
 ### Task 10.1 — Dashboard
-- [ ] Hitung jumlah pesanan masuk hari ini.
-- [ ] Hitung pesanan yang sedang diproses.
-- [ ] Hitung cucian siap diambil.
-- [ ] Hitung pesanan yang sudah diambil.
-- [ ] Hitung pembayaran yang diterima hari ini.
-- [ ] Hitung total saldo tagihan belum lunas.
-- [ ] Tampilkan transaksi terbaru.
-- [ ] Tambahkan grafik sederhana jika dapat berjalan lokal.
-- [ ] Pastikan semua angka berasal dari database, bukan data dummy.
+- [x] Hitung jumlah pesanan masuk hari ini.
+- [x] Hitung pesanan yang sedang diproses.
+- [x] Hitung cucian siap diambil.
+- [x] Hitung pesanan yang sudah diambil.
+- [x] Hitung pembayaran yang diterima hari ini.
+- [x] Hitung total saldo tagihan belum lunas.
+- [x] Tampilkan transaksi terbaru.
+- [x] Tambahkan grafik sederhana jika dapat berjalan lokal.
+- [x] Pastikan semua angka berasal dari database, bukan data dummy.
 
 ### Task 10.2 — Daftar transaksi
-- [ ] Tambahkan pagination.
-- [ ] Tambahkan pencarian nomor transaksi, nama pelanggan, dan nomor telepon.
-- [ ] Tambahkan filter tanggal, status cucian, status pembayaran, dan petugas.
-- [ ] Pertahankan filter ketika berpindah halaman jika memungkinkan.
-- [ ] Pastikan query filter aman dan efisien.
+- [x] Tambahkan pagination.
+- [x] Tambahkan pencarian nomor transaksi, nama pelanggan, dan nomor telepon.
+- [x] Tambahkan filter tanggal, status cucian, status pembayaran, dan petugas.
+- [x] Pertahankan filter ketika berpindah halaman jika memungkinkan.
+- [x] Pastikan query filter aman dan efisien.
 
 ### Task 10.3 — Laporan
-- [ ] Buat laporan jumlah pesanan.
-- [ ] Buat laporan nilai transaksi.
-- [ ] Buat laporan kas masuk berdasarkan tanggal pembayaran.
-- [ ] Buat laporan sisa tagihan/piutang.
-- [ ] Buat laporan pembayaran berdasarkan metode.
-- [ ] Buat laporan layanan paling sering dipesan.
-- [ ] Buat laporan pesanan berdasarkan status.
-- [ ] Tambahkan filter rentang tanggal.
-- [ ] Implementasikan ekspor CSV yang aman.
-- [ ] Batasi akses laporan sesuai role.
-- [ ] Dokumentasikan definisi setiap angka laporan.
+- [x] Buat laporan jumlah pesanan.
+- [x] Buat laporan nilai transaksi.
+- [x] Buat laporan kas masuk berdasarkan tanggal pembayaran.
+- [x] Buat laporan sisa tagihan/piutang.
+- [x] Buat laporan pembayaran berdasarkan metode.
+- [x] Buat laporan layanan paling sering dipesan.
+- [x] Buat laporan pesanan berdasarkan status.
+- [x] Tambahkan filter rentang tanggal.
+- [x] Implementasikan ekspor CSV yang aman.
+- [x] Batasi akses laporan sesuai role.
+- [x] Dokumentasikan definisi setiap angka laporan.
 
 ### Task 10.4 — Pengujian laporan
-- [ ] Bandingkan laporan dengan data transaksi uji yang diketahui.
-- [ ] Pastikan pembayaran yang dibatalkan tidak dihitung sebagai kas masuk.
-- [ ] Pastikan transaksi belum lunas tidak dianggap sudah dibayar penuh.
-- [ ] Uji filter rentang tanggal.
-- [ ] Uji ekspor CSV dan izin akses.
+- [x] Bandingkan laporan dengan data transaksi uji yang diketahui.
+- [x] Pastikan pembayaran yang dibatalkan tidak dihitung sebagai kas masuk.
+- [x] Pastikan transaksi belum lunas tidak dianggap sudah dibayar penuh.
+- [x] Uji filter rentang tanggal.
+- [x] Uji ekspor CSV dan izin akses.
 
-**Gate 10:** Angka dashboard dan laporan harus dapat ditelusuri kembali ke data transaksi dan pembayaran.
+**Gate 10:** Angka dashboard dan laporan harus dapat ditelusuri kembali ke data transaksi dan pembayaran. (LULUS)
 
 ---
 

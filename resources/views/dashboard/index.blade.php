@@ -4,7 +4,7 @@
 
 @section('content')
 <div style="display: flex; flex-direction: column; gap: var(--space-6);">
-    <!-- Header Sambutan -->
+    <!-- Header Sambutan & Quick Actions -->
     <div class="glass-card" style="padding: var(--space-6);">
         <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: var(--space-4);">
             <div>
@@ -12,157 +12,260 @@
                     Selamat Datang, {{ auth()->user()->name }}!
                 </h2>
                 <p style="color: var(--text-muted); font-size: var(--text-sm);">
-                    Anda sedang mengelola operasional <strong>LaundryDesk (RAP Laundry)</strong> dengan peran
+                    Ringkasan operasional harian <strong>LaundryDesk (RAP Laundry)</strong> &mdash; Peran:
                     <span class="badge {{ auth()->user()->isAdmin() ? 'badge-primary' : 'badge-info' }}" style="vertical-align: middle;">
                         {{ auth()->user()->role->label() }}
-                    </span>.
+                    </span>
+                    &bull; {{ now()->translatedFormat('l, d F Y') }}
                 </p>
             </div>
-            <div style="display: flex; gap: var(--space-2); flex-wrap: wrap;">
-                <x-button variant="secondary" icon="print" onclick="window.print()" class="no-print">
-                    Cetak Laporan
+            <div style="display: flex; gap: var(--space-2); flex-wrap: wrap;" class="no-print">
+                <x-button variant="secondary" icon="orders" href="{{ route('orders.index') }}">
+                    Daftar Pesanan
                 </x-button>
-                <x-button variant="primary" icon="plus" href="{{ Route::has('orders.create') ? route('orders.create') : '#' }}" class="no-print">
+                @if(auth()->user()->isAdmin())
+                    <x-button variant="secondary" icon="reports" href="{{ route('admin.reports.index') }}">
+                        Laporan Keuangan
+                    </x-button>
+                @endif
+                <x-button variant="primary" icon="plus" href="{{ route('orders.create') }}">
                     Pesanan Baru
                 </x-button>
             </div>
         </div>
     </div>
 
-    <!-- Metrik Statistik Utama (Glassmorphism Stat Cards) -->
-    <div class="grid grid-cols-4">
+    <!-- Metrik Statistik Utama (Task 10.1: 6 Metrik Riil Database) -->
+    <div class="grid grid-cols-3" style="gap: var(--space-4);">
         <x-stat-card
             title="Pesanan Hari Ini"
-            value="0"
+            :value="$metrics['orders_today_count']"
             icon="orders"
             color="primary"
             hint="Total pesanan diterima hari ini"
         />
         <x-stat-card
             title="Sedang Diproses"
-            value="0"
+            :value="$metrics['processing_orders_count']"
             icon="clock"
             color="warning"
-            hint="Dicuci, dikeringkan, atau disetrika"
+            hint="Antrean cuci, kering, atau setrika"
         />
         <x-stat-card
             title="Siap Diambil"
-            value="0"
+            :value="$metrics['ready_orders_count']"
             icon="check"
-            color="success"
-            hint="Menunggu pengambilan pelanggan"
+            color="info"
+            hint="Cucian selesai & menunggu pelanggan"
         />
         <x-stat-card
-            title="Pendapatan Hari Ini"
-            value="Rp 0"
+            title="Sudah Diambil (Selesai)"
+            :value="$metrics['completed_orders_count']"
+            icon="receipt"
+            color="success"
+            :hint="'Diambil hari ini: ' . $metrics['completed_today_count'] . ' pesanan'"
+        />
+        <x-stat-card
+            title="Kas Masuk Hari Ini"
+            :value="'Rp' . number_format($metrics['cash_inflow_today'], 0, ',', '.')"
             icon="payments"
-            color="info"
-            hint="Total penerimaan kasir hari ini"
+            color="success"
+            hint="Pembayaran valid diterima hari ini"
+        />
+        <x-stat-card
+            title="Total Piutang Belum Lunas"
+            :value="'Rp' . number_format($metrics['total_unpaid_balance'], 0, ',', '.')"
+            icon="alert-triangle"
+            color="danger"
+            hint="Sisa tagihan pesanan aktif"
         />
     </div>
 
-    <!-- Ringkasan Status & Demonstrasi Komponen UI Reusable -->
-    <div class="grid grid-cols-2">
-        <!-- Panel Status Cucian & Pembayaran -->
-        <div class="glass-card" style="padding: var(--space-6);">
-            <h3 style="font-size: var(--text-base); font-weight: var(--font-bold); color: var(--text-main); margin-bottom: var(--space-3);">
-                Indikator Status Domain Laundry & Kasir
-            </h3>
-            <p style="font-size: var(--text-xs); color: var(--text-muted); margin-bottom: var(--space-4);">
-                Komponen badge status terstandarisasi untuk alur kerja cucian dan status pembayaran kasir.
-            </p>
-            <div style="display: flex; flex-direction: column; gap: var(--space-3);">
+    <!-- Grafik Sederhana 100% Offline & Ringkasan Distribusi Status -->
+    <div class="grid grid-cols-3" style="gap: var(--space-6);">
+        <!-- Grafik Tren 7 Hari Terakhir (Offline Pure SVG) -->
+        <div class="glass-card" style="padding: var(--space-6); grid-column: span 2;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-4);">
                 <div>
-                    <span style="font-size: var(--text-xs); font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 0.25rem;">
-                        Status Pengerjaan Cucian (LaundryStatus Enum):
-                    </span>
-                    <div style="display: flex; gap: 0.375rem; flex-wrap: wrap;">
-                        <x-badge-status status="diterima" />
-                        <x-badge-status status="menunggu_proses" />
-                        <x-badge-status status="dicuci" />
-                        <x-badge-status status="disetrika" />
-                        <x-badge-status status="siap_diambil" />
-                        <x-badge-status status="selesai" />
-                        <x-badge-status status="dibatalkan" />
-                    </div>
+                    <h3 style="font-size: var(--text-base); font-weight: var(--font-bold); color: var(--text-main); margin-bottom: 0.25rem;">
+                        Tren Operasional 7 Hari Terakhir
+                    </h3>
+                    <p style="font-size: var(--text-xs); color: var(--text-muted);">
+                        Volume pesanan masuk dan realisasi kas masuk harian (100% offline).
+                    </p>
                 </div>
-                <div>
-                    <span style="font-size: var(--text-xs); font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 0.25rem;">
-                        Status Finansial Kasir (PaymentStatus Enum):
+                <div style="display: flex; gap: var(--space-3); font-size: var(--text-xs);">
+                    <span style="display: inline-flex; align-items: center; gap: 0.375rem; color: var(--text-muted);">
+                        <span style="display: inline-block; width: 10px; height: 10px; border-radius: 2px; background: #2563EB;"></span>
+                        Pesanan (Qty)
                     </span>
-                    <div style="display: flex; gap: 0.375rem; flex-wrap: wrap;">
-                        <x-badge-status status="belum_dibayar" />
-                        <x-badge-status status="dibayar_sebagian" />
-                        <x-badge-status status="lunas" />
-                    </div>
+                    <span style="display: inline-flex; align-items: center; gap: 0.375rem; color: var(--text-muted);">
+                        <span style="display: inline-block; width: 10px; height: 10px; border-radius: 2px; background: #10B981;"></span>
+                        Kas Masuk (Rp)
+                    </span>
+                </div>
+            </div>
+
+            @php
+                $maxOrders = max(1, $weeklyTrend->max('orders_count'));
+                $maxCash = max(1, $weeklyTrend->max('cash_amount'));
+            @endphp
+
+            <!-- Pure SVG & CSS Responsive Bar Chart -->
+            <div style="padding: var(--space-2) 0; overflow-x: auto;">
+                <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: var(--space-3); align-items: flex-end; min-height: 180px; padding: 0 var(--space-2);">
+                    @foreach($weeklyTrend as $day)
+                        @php
+                            $orderHeightPercent = min(100, max(8, round(($day['orders_count'] / $maxOrders) * 90)));
+                            $cashHeightPercent = $day['cash_amount'] > 0 ? min(100, max(8, round(($day['cash_amount'] / $maxCash) * 90))) : 0;
+                        @endphp
+                        <div style="display: flex; flex-direction: column; align-items: center; gap: 0.375rem; height: 100%; justify-content: flex-end;">
+                            <!-- Kolom Batang Visual -->
+                            <div style="display: flex; align-items: flex-end; gap: 4px; width: 100%; height: 140px; background: rgba(226, 232, 240, 0.25); border-radius: 6px; padding: 4px; justify-content: center;">
+                                <!-- Bar Pesanan -->
+                                <div
+                                    title="{{ $day['label'] }}: {{ $day['orders_count'] }} pesanan"
+                                    style="width: 14px; height: {{ $day['orders_count'] > 0 ? $orderHeightPercent : 4 }}%; background: {{ $day['is_today'] ? '#1D4ED8' : '#3B82F6' }}; border-radius: 3px 3px 0 0; transition: height 0.3s ease;"
+                                ></div>
+                                <!-- Bar Kas Masuk -->
+                                <div
+                                    title="{{ $day['label'] }}: {{ $day['formatted_cash'] }}"
+                                    style="width: 14px; height: {{ $cashHeightPercent }}%; background: {{ $day['is_today'] ? '#059669' : '#10B981' }}; border-radius: 3px 3px 0 0; transition: height 0.3s ease;"
+                                ></div>
+                            </div>
+                            <!-- Angka & Label Hari -->
+                            <span style="font-size: 11px; font-weight: {{ $day['is_today'] ? '700' : '500' }}; color: {{ $day['is_today'] ? 'var(--color-primary)' : 'var(--text-muted)' }}; text-align: center;">
+                                {{ $day['short_label'] }}
+                                @if($day['is_today'])
+                                    <span style="display: block; font-size: 9px; color: var(--color-primary); font-weight: 700;">Hari Ini</span>
+                                @else
+                                    <span style="display: block; font-size: 9px; color: var(--text-muted);">{{ $day['orders_count'] }} psn</span>
+                                @endif
+                            </span>
+                        </div>
+                    @endforeach
                 </div>
             </div>
         </div>
 
-        <!-- Panel Filter & Tindakan Berisiko -->
+        <!-- Distribusi Status Cucian Aktif -->
         <div class="glass-card" style="padding: var(--space-6);">
             <h3 style="font-size: var(--text-base); font-weight: var(--font-bold); color: var(--text-main); margin-bottom: var(--space-3);">
-                Dialog Aksi & Proteksi Konfirmasi
+                Distribusi Status Cucian
             </h3>
             <p style="font-size: var(--text-xs); color: var(--text-muted); margin-bottom: var(--space-4);">
-                Uji coba dialog konfirmasi modal untuk tindakan berisiko (misal pembatalan pesanan / void pembayaran).
+                Akumulasi seluruh pesanan berdasarkan tahapan operasional.
             </p>
-            <div style="display: flex; gap: var(--space-3); flex-wrap: wrap;">
-                <x-button
-                    variant="danger"
-                    size="sm"
-                    icon="alert-triangle"
-                    onclick="window.LaundryDesk.openConfirmModal({
-                        title: 'Batalkan Pesanan Cucian?',
-                        message: 'Tindakan ini akan membatalkan status pengerjaan pesanan dan mencatat jejak audit pembatalan.',
-                        confirmText: 'Ya, Batalkan Pesanan',
-                        confirmClass: 'btn-danger'
-                    })"
-                >
-                    Uji Modal Batalkan
-                </x-button>
-
-                <x-button
-                    variant="secondary"
-                    size="sm"
-                    icon="refresh"
-                    onclick="window.location.reload()"
-                >
-                    Muat Ulang Halaman
-                </x-button>
+            <div style="display: flex; flex-direction: column; gap: var(--space-2);">
+                @foreach(\App\Enums\LaundryStatus::cases() as $st)
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.375rem 0.5rem; border-radius: 6px; background: rgba(248, 250, 252, 0.6);">
+                        <x-badge-status :status="$st" />
+                        <span style="font-size: var(--text-sm); font-weight: var(--font-bold); color: var(--text-main);">
+                            {{ $statusDistribution[$st->value] ?? 0 }}
+                        </span>
+                    </div>
+                @endforeach
             </div>
         </div>
     </div>
 
-    <!-- Tabel Pesanan Terbaru & Empty State -->
+    <!-- Tabel 10 Transaksi Terbaru (Task 10.1: Riil Database) -->
     <div class="glass-card" style="padding: var(--space-6);">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-4); flex-wrap: wrap; gap: var(--space-3);">
             <div>
                 <h3 style="font-size: var(--text-lg); font-weight: var(--font-bold); color: var(--text-main);">
-                    Pesanan Terbaru
+                    Transaksi Terbaru
                 </h3>
                 <p style="font-size: var(--text-xs); color: var(--text-muted);">
-                    Daftar antrean dan progres cucian pelanggan hari ini.
+                    10 pesanan cucian terakhir yang dicatat ke sistem.
                 </p>
             </div>
             <div class="no-print">
-                <x-filter-bar style="padding: 0; background: none; border: none; box-shadow: none; margin: 0;">
-                    <div class="filter-group">
-                        <x-form.input name="q" placeholder="Cari nomor nota / pelanggan..." style="padding: 0.375rem 0.75rem; font-size: 0.8125rem;" />
-                    </div>
-                </x-filter-bar>
+                <x-button variant="secondary" size="sm" icon="orders" href="{{ route('orders.index') }}">
+                    Lihat Semua Transaksi &rarr;
+                </x-button>
             </div>
         </div>
 
-        <div class="table-container">
-            <x-empty-state
-                title="Belum Ada Pesanan Aktif"
-                description="Belum ada transaksi cucian yang tercatat untuk hari ini. Silakan buat pesanan baru untuk memulai penerimaan pakaian pelanggan."
-                icon="orders"
-                actionText="Buat Pesanan Pertama"
-                :actionUrl="Route::has('orders.create') ? route('orders.create') : '#'"
-            />
-        </div>
+        @if($recentOrders->isEmpty())
+            <div class="table-container">
+                <x-empty-state
+                    title="Belum Ada Pesanan"
+                    description="Belum ada transaksi cucian yang tercatat di database. Klik tombol di bawah untuk membuat pesanan pertama."
+                    icon="orders"
+                    actionText="Buat Pesanan Pertama"
+                    :actionUrl="route('orders.create')"
+                />
+            </div>
+        @else
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Nomor Nota</th>
+                            <th>Pelanggan</th>
+                            <th>Tanggal Masuk</th>
+                            <th>Status Cucian</th>
+                            <th>Status Pembayaran</th>
+                            <th style="text-align: right;">Total Tagihan</th>
+                            <th style="text-align: right;">Sisa Tagihan</th>
+                            <th>Petugas</th>
+                            <th style="text-align: center;">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($recentOrders as $order)
+                            <tr>
+                                <td>
+                                    <a href="{{ route('orders.show', $order) }}" style="font-weight: 600; color: var(--color-primary); text-decoration: none;">
+                                        {{ $order->order_number }}
+                                    </a>
+                                </td>
+                                <td>
+                                    <div style="font-weight: 500; color: var(--text-main);">
+                                        {{ $order->customer->name ?? '-' }}
+                                    </div>
+                                    <div style="font-size: 11px; color: var(--text-muted);">
+                                        {{ $order->customer->phone ?? '' }}
+                                    </div>
+                                </td>
+                                <td>
+                                    <div style="font-size: var(--text-xs); color: var(--text-main);">
+                                        {{ $order->received_at->format('d/m/Y') }}
+                                    </div>
+                                    <div style="font-size: 11px; color: var(--text-muted);">
+                                        {{ $order->received_at->format('H:i') }} WIB
+                                    </div>
+                                </td>
+                                <td>
+                                    <x-badge-status :status="$order->laundry_status" />
+                                </td>
+                                <td>
+                                    <x-badge-status :status="$order->payment_status" />
+                                </td>
+                                <td style="text-align: right; font-weight: 600; color: var(--text-main);">
+                                    {{ $order->formatted_total_amount }}
+                                </td>
+                                <td style="text-align: right; font-weight: 600; color: {{ $order->remaining_balance > 0 ? 'var(--color-danger, #DC2626)' : 'var(--color-success, #16A34A)' }};">
+                                    {{ $order->formatted_remaining_balance }}
+                                </td>
+                                <td>
+                                    <span style="font-size: var(--text-xs); color: var(--text-muted);">
+                                        {{ $order->creator->name ?? '-' }}
+                                    </span>
+                                </td>
+                                <td style="text-align: center;">
+                                    <div style="display: inline-flex; gap: 0.375rem;">
+                                        <x-button variant="secondary" size="sm" icon="eye" href="{{ route('orders.show', $order) }}" title="Rincian Pesanan" />
+                                        <x-button variant="secondary" size="sm" icon="print" href="{{ route('orders.print', $order) }}" title="Cetak Nota" />
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        @endif
     </div>
 </div>
 @endsection
