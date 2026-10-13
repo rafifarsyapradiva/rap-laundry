@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\ServiceController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -36,6 +37,12 @@ Route::middleware('auth')->group(function () {
         Route::post('/customers/{customer}/restore', [CustomerController::class, 'restore'])->name('customers.restore');
         Route::patch('/customers/{customer}/toggle-status', [CustomerController::class, 'toggleStatus'])->name('customers.toggle-status');
         Route::delete('/customers/{customer}/force-delete', [CustomerController::class, 'forceDelete'])->name('customers.force-delete');
+
+        // Modul Master Layanan dan Tarif
+        Route::resource('services', ServiceController::class);
+        Route::post('/services/{service}/restore', [ServiceController::class, 'restore'])->name('services.restore');
+        Route::patch('/services/{service}/toggle-status', [ServiceController::class, 'toggleStatus'])->name('services.toggle-status');
+        Route::delete('/services/{service}/force-delete', [ServiceController::class, 'forceDelete'])->name('services.force-delete');
     });
 
     // Rute administratif khusus pemilik / Admin

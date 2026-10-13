@@ -191,21 +191,21 @@ Jangan menandai task sebagai `[x]` jika belum diverifikasi.
 - [x] Tampilkan riwayat transaksi pelanggan jika sesuai.
 
 ### Task 5.2 — Master layanan dan harga
-- [ ] Buat halaman daftar layanan.
-- [ ] Implementasikan tambah, edit, aktif/nonaktif, dan validasi harga.
-- [ ] Dukung satuan `kg`, `item`, dan `package`.
-- [ ] Tambahkan data awal layanan yang dapat diubah.
-- [ ] Simpan estimasi pengerjaan jika digunakan.
-- [ ] Pastikan layanan nonaktif tidak dapat dipilih untuk pesanan baru.
-- [ ] Pastikan perubahan harga tidak mengubah harga snapshot transaksi lama.
+- [x] Buat halaman daftar layanan.
+- [x] Implementasikan tambah, edit, aktif/nonaktif, dan validasi harga.
+- [x] Dukung satuan `kg`, `item`, dan `package`.
+- [x] Tambahkan data awal layanan yang dapat diubah.
+- [x] Simpan estimasi pengerjaan jika digunakan.
+- [x] Pastikan layanan nonaktif tidak dapat dipilih untuk pesanan baru.
+- [x] Pastikan perubahan harga tidak mengubah harga snapshot transaksi lama.
 
 ### Task 5.3 — Pengujian master data
-- [ ] Uji validasi nama, satuan, harga, dan status.
-- [ ] Uji pencarian dan pagination.
-- [ ] Uji otorisasi untuk perubahan master data.
-- [ ] Uji arsip data yang masih terhubung ke transaksi.
+- [x] Uji validasi nama, satuan, harga, dan status.
+- [x] Uji pencarian dan pagination.
+- [x] Uji otorisasi untuk perubahan master data.
+- [x] Uji arsip data yang masih terhubung ke transaksi.
 
-**Gate 5:** Data pelanggan dan layanan harus siap digunakan untuk pembuatan transaksi.
+**Gate 5:** Data pelanggan dan layanan harus siap digunakan untuk pembuatan transaksi. (LULUS)
 
 ---
 

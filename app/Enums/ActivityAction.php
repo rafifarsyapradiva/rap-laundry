@@ -16,6 +16,11 @@ enum ActivityAction: string
     case OrderCancelled = 'order.cancelled';
     case PaymentRecorded = 'payment.recorded';
     case PaymentVoided = 'payment.voided';
+    case ServiceCreated = 'service.created';
+    case ServiceUpdated = 'service.updated';
+    case ServiceArchived = 'service.archived';
+    case ServiceRestored = 'service.restored';
+    case ServiceStatusChanged = 'service.status_changed';
     case ServicePriceChanged = 'service.price_changed';
     case SettingUpdated = 'setting.updated';
 
@@ -34,6 +39,11 @@ enum ActivityAction: string
             self::OrderCancelled => 'Pesanan dibatalkan',
             self::PaymentRecorded => 'Pembayaran dicatat',
             self::PaymentVoided => 'Pembayaran dibatalkan (void)',
+            self::ServiceCreated => 'Layanan baru ditambahkan',
+            self::ServiceUpdated => 'Data layanan diubah',
+            self::ServiceArchived => 'Layanan diarsipkan',
+            self::ServiceRestored => 'Layanan dipulihkan',
+            self::ServiceStatusChanged => 'Status aktif layanan diubah',
             self::ServicePriceChanged => 'Harga layanan diubah',
             self::SettingUpdated => 'Pengaturan usaha diubah',
         };
