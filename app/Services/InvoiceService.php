@@ -29,6 +29,7 @@ class InvoiceService
         ]);
 
         // 1. Identitas Usaha dari Pengaturan Bisnis Lokal
+        $logoPath = BusinessSetting::get(BusinessSetting::KEY_BUSINESS_LOGO_PATH);
         $businessInfo = [
             'name' => BusinessSetting::get(BusinessSetting::KEY_BUSINESS_NAME, 'RAP Laundry'),
             'address' => BusinessSetting::get(BusinessSetting::KEY_BUSINESS_ADDRESS, 'Jl. Kebon Jeruk No. 12, Jakarta Barat'),
@@ -39,6 +40,8 @@ class InvoiceService
                 'Harap bawa nota ini saat pengambilan pakaian. Pakaian yang tidak diambil dalam 30 hari di luar tanggung jawab laundry.'
             ),
             'default_print_format' => BusinessSetting::get(BusinessSetting::KEY_PRINT_FORMAT, 'a4'),
+            'logo_path' => $logoPath,
+            'logo_url' => $logoPath ? asset('storage/' . $logoPath) : null,
         ];
 
         // 2. Data Pelanggan

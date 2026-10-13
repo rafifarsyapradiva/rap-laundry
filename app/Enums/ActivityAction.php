@@ -23,6 +23,10 @@ enum ActivityAction: string
     case ServiceStatusChanged = 'service.status_changed';
     case ServicePriceChanged = 'service.price_changed';
     case SettingUpdated = 'setting.updated';
+    case UserCreated = 'user.created';
+    case UserUpdated = 'user.updated';
+    case UserStatusChanged = 'user.status_changed';
+    case UserPasswordReset = 'user.password_reset';
 
     public function label(): string
     {
@@ -46,6 +50,10 @@ enum ActivityAction: string
             self::ServiceStatusChanged => 'Status aktif layanan diubah',
             self::ServicePriceChanged => 'Harga layanan diubah',
             self::SettingUpdated => 'Pengaturan usaha diubah',
+            self::UserCreated => 'Pengguna baru ditambahkan',
+            self::UserUpdated => 'Data pengguna diubah',
+            self::UserStatusChanged => 'Status aktif pengguna diubah',
+            self::UserPasswordReset => 'Kata sandi pengguna direset',
         };
     }
 }

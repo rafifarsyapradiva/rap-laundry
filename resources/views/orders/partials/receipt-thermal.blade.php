@@ -5,6 +5,11 @@
 <div class="thermal-receipt">
     <!-- Header Identitas Usaha -->
     <div class="thermal-header">
+        @if (!empty($business['logo_url']))
+            <div style="margin-bottom: 6px;">
+                <img src="{{ $business['logo_url'] }}" alt="{{ $business['name'] }}" style="max-height: 48px; max-width: 100px; filter: grayscale(100%); object-fit: contain;">
+            </div>
+        @endif
         <h2 class="thermal-business-name">{{ $business['name'] }}</h2>
         <div class="thermal-business-info">{{ $business['address'] }}</div>
         <div class="thermal-business-info">Telp: {{ $business['phone'] }}</div>

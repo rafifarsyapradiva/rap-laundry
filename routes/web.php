@@ -1,5 +1,8 @@
 <?php
 
+use App\Http\Controllers\Admin\AuditLogController;
+use App\Http\Controllers\Admin\SettingController;
+use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
@@ -70,17 +73,20 @@ Route::middleware('auth')->group(function () {
             return view('admin.reports.export');
         })->name('reports.export');
 
-        Route::get('/users', function () {
-            return view('admin.users.index');
-        })->name('users.index');
+        // Modul Pengaturan Usaha & Parameter Cetak Nota
+        Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
+        Route::put('/settings', [SettingController::class, 'update'])->name('settings.update');
 
-        Route::get('/settings', function () {
-            return view('admin.settings.index');
-        })->name('settings.index');
+        // Modul Jejak Audit Aktivitas Sistem
+        Route::get('/audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
 
-        Route::get('/audit-logs', function () {
-            $logs = \App\Models\ActivityLog::with('user')->latest()->paginate(15);
-            return view('admin.audit-logs.index', compact('logs'));
-        })->name('audit-logs.index');
+        // Modul Manajemen Pengguna & Hak Akses
+        Route::get('/users', [UserController::class, 'index'])->name('users.index');
+        Route::get('/users/create', [UserController::class, 'create'])->name('users.create');
+        Route::post('/users', [UserController::class, 'store'])->name('users.store');
+        Route::get('/users/{user}/edit', [UserController::class, 'edit'])->name('users.edit');
+        Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
+        Route::patch('/users/{user}/toggle-status', [UserController::class, 'toggleStatus'])->name('users.toggle-status');
+        Route::patch('/users/{user}/reset-password', [UserController::class, 'resetPassword'])->name('users.reset-password');
     });
 });

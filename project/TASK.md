@@ -382,33 +382,33 @@ Jangan menandai task sebagai `[x]` jika belum diverifikasi.
 ## Fase 11 — Pengaturan Usaha dan Audit Log
 
 ### Task 11.1 — Pengaturan usaha
-- [ ] Buat halaman pengaturan untuk admin.
-- [ ] Sediakan nama usaha, alamat, nomor telepon, catatan nota, dan format nomor transaksi.
-- [ ] Sediakan estimasi pengerjaan default bila diperlukan.
-- [ ] Jika logo diunggah, validasi MIME, ukuran, nama file, dan lokasi penyimpanan.
-- [ ] Pastikan pengaturan tersimpan di database dan diterapkan pada nota.
-- [ ] Validasi input pengaturan di server.
+- [x] Buat halaman pengaturan untuk admin.
+- [x] Sediakan nama usaha, alamat, nomor telepon, catatan nota, dan format nomor transaksi.
+- [x] Sediakan estimasi pengerjaan default bila diperlukan.
+- [x] Jika logo diunggah, validasi MIME, ukuran, nama file, dan lokasi penyimpanan.
+- [x] Pastikan pengaturan tersimpan di database dan diterapkan pada nota.
+- [x] Validasi input pengaturan di server.
 
 ### Task 11.2 — Audit log
-- [ ] Catat pembuatan transaksi.
-- [ ] Catat perubahan status.
-- [ ] Catat pembayaran, void, dan koreksi.
-- [ ] Catat pembatalan pesanan.
-- [ ] Catat perubahan harga layanan.
-- [ ] Catat perubahan pengaturan penting.
-- [ ] Simpan aktor, tindakan, objek, waktu, dan ringkasan perubahan.
-- [ ] Batasi tampilan audit log kepada admin.
-- [ ] Hindari menyimpan password, token, atau informasi rahasia ke log.
+- [x] Catat pembuatan transaksi.
+- [x] Catat perubahan status.
+- [x] Catat pembayaran, void, dan koreksi.
+- [x] Catat pembatalan pesanan.
+- [x] Catat perubahan harga layanan.
+- [x] Catat perubahan pengaturan penting.
+- [x] Simpan aktor, tindakan, objek, waktu, dan ringkasan perubahan.
+- [x] Batasi tampilan audit log kepada admin.
+- [x] Hindari menyimpan password, token, atau informasi rahasia ke log.
 
 ### Task 11.3 — Manajemen pengguna
-- [ ] Buat daftar pengguna untuk admin.
-- [ ] Buat tambah/edit pengguna.
-- [ ] Buat aktif/nonaktif akun.
-- [ ] Sediakan reset password yang aman.
-- [ ] Cegah admin mengunci dirinya sendiri tanpa akun admin pengganti.
-- [ ] Uji pembatasan akses manajemen pengguna.
+- [x] Buat daftar pengguna untuk admin.
+- [x] Buat tambah/edit pengguna.
+- [x] Buat aktif/nonaktif akun.
+- [x] Sediakan reset password yang aman.
+- [x] Cegah admin mengunci dirinya sendiri tanpa akun admin pengganti.
+- [x] Uji pembatasan akses manajemen pengguna.
 
-**Gate 11:** Pengaturan dan perubahan penting harus terkontrol dan dapat diaudit.
+**Gate 11:** Pengaturan dan perubahan penting harus terkontrol dan dapat diaudit. (LULUS)
 
 ---
 

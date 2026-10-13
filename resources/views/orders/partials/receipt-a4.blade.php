@@ -5,15 +5,22 @@
 <div class="a4-receipt">
     <!-- Header Dokumen / Kop Usaha -->
     <div class="a4-header">
-        <div class="a4-business-col">
-            <h1 class="a4-business-name">{{ $business['name'] }}</h1>
-            <p class="a4-business-desc">Layanan Cuci, Pengeringan, dan Penyetrikaan Pakaian</p>
-            <div class="a4-business-meta">
-                <div>{{ $business['address'] }}</div>
-                <div>Telepon / WhatsApp: <strong>{{ $business['phone'] }}</strong></div>
-                @if (!empty($business['operating_hours']))
-                    <div>Jam Operasional: {{ $business['operating_hours'] }}</div>
-                @endif
+        <div class="a4-business-col" style="display: flex; gap: 16px; align-items: flex-start;">
+            @if (!empty($business['logo_url']))
+                <div class="a4-business-logo" style="flex-shrink: 0;">
+                    <img src="{{ $business['logo_url'] }}" alt="{{ $business['name'] }}" style="max-height: 70px; max-width: 120px; object-fit: contain; border-radius: 4px;">
+                </div>
+            @endif
+            <div>
+                <h1 class="a4-business-name">{{ $business['name'] }}</h1>
+                <p class="a4-business-desc">Layanan Cuci, Pengeringan, dan Penyetrikaan Pakaian</p>
+                <div class="a4-business-meta">
+                    <div>{{ $business['address'] }}</div>
+                    <div>Telepon / WhatsApp: <strong>{{ $business['phone'] }}</strong></div>
+                    @if (!empty($business['operating_hours']))
+                        <div>Jam Operasional: {{ $business['operating_hours'] }}</div>
+                    @endif
+                </div>
             </div>
         </div>
 

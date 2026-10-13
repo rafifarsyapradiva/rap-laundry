@@ -45,4 +45,16 @@ class BusinessSetting extends Model
             ['setting_value' => $value]
         );
     }
+
+    /**
+     * Ambil seluruh konfigurasi usaha dalam format associative array [key => value].
+     *
+     * @return array<string, ?string>
+     */
+    public static function allAsArray(): array
+    {
+        return static::query()
+            ->pluck('setting_value', 'setting_key')
+            ->toArray();
+    }
 }
