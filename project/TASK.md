@@ -151,32 +151,32 @@ Jangan menandai task sebagai `[x]` jika belum diverifikasi.
 ## Fase 4 — Design System dan Layout Glassmorphism
 
 ### Task 4.1 — Design tokens
-- [ ] Definisikan variabel CSS untuk warna, spacing, radius, bayangan, blur, dan tipografi.
-- [ ] Gunakan biru utama `#2563EB`, biru gelap `#1D4ED8`, biru muda `#DBEAFE`, latar `#F4F8FF`, dan teks utama `#172554` sebagai acuan.
-- [ ] Pastikan teks dan komponen memiliki kontras yang memadai.
-- [ ] Gunakan font lokal atau font sistem.
-- [ ] Buat ikon SVG lokal atau ikon CSS tanpa CDN.
+- [x] Definisikan variabel CSS untuk warna, spacing, radius, bayangan, blur, dan tipografi.
+- [x] Gunakan biru utama `#2563EB`, biru gelap `#1D4ED8`, biru muda `#DBEAFE`, latar `#F4F8FF`, dan teks utama `#172554` sebagai acuan.
+- [x] Pastikan teks dan komponen memiliki kontras yang memadai.
+- [x] Gunakan font lokal atau font sistem.
+- [x] Buat ikon SVG lokal atau ikon CSS tanpa CDN.
 
 ### Task 4.2 — Komponen UI reusable
-- [ ] Buat layout utama Blade.
-- [ ] Buat sidebar desktop dan navigasi mobile.
-- [ ] Buat topbar dengan judul halaman dan informasi pengguna.
-- [ ] Buat komponen kartu statistik Glassmorphism.
-- [ ] Buat komponen tabel, filter, pagination, input, select, textarea, dan tombol.
-- [ ] Buat badge status cucian dan pembayaran.
-- [ ] Buat dialog konfirmasi untuk tindakan berisiko.
-- [ ] Buat notifikasi sukses/gagal dan empty state.
-- [ ] Buat gaya cetak yang tidak menyertakan sidebar atau navigasi.
+- [x] Buat layout utama Blade.
+- [x] Buat sidebar desktop dan navigasi mobile.
+- [x] Buat topbar dengan judul halaman dan informasi pengguna.
+- [x] Buat komponen kartu statistik Glassmorphism.
+- [x] Buat komponen tabel, filter, pagination, input, select, textarea, dan tombol.
+- [x] Buat badge status cucian dan pembayaran.
+- [x] Buat dialog konfirmasi untuk tindakan berisiko.
+- [x] Buat notifikasi sukses/gagal dan empty state.
+- [x] Buat gaya cetak yang tidak menyertakan sidebar atau navigasi.
 
 ### Task 4.3 — Responsivitas
-- [ ] Uji dashboard dan tabel pada desktop.
-- [ ] Uji form pada tablet.
-- [ ] Uji navigasi dan tabel pada layar ponsel.
-- [ ] Pastikan fokus keyboard terlihat.
-- [ ] Pastikan animasi menghormati `prefers-reduced-motion`.
-- [ ] Pastikan UI tetap terbaca ketika blur tidak tersedia.
+- [x] Uji dashboard dan tabel pada desktop.
+- [x] Uji form pada tablet.
+- [x] Uji navigasi dan tabel pada layar ponsel.
+- [x] Pastikan fokus keyboard terlihat.
+- [x] Pastikan animasi menghormati `prefers-reduced-motion`.
+- [x] Pastikan UI tetap terbaca ketika blur tidak tersedia.
 
-**Gate 4:** Layout dan komponen dasar konsisten sebelum seluruh halaman bisnis dibangun.
+**Gate 4:** Layout dan komponen dasar konsisten sebelum seluruh halaman bisnis dibangun. (LULUS)
 
 ---
 
