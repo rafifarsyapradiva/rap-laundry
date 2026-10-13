@@ -36,6 +36,7 @@ Route::middleware('auth')->group(function () {
         // Modul Transaksi Pembuatan Pesanan Laundry
         Route::get('/orders/create', [OrderController::class, 'create'])->name('orders.create');
         Route::post('/orders', [OrderController::class, 'store'])->name('orders.store');
+        Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
 
         // Modul Pengelolaan Data Pelanggan
         Route::resource('customers', CustomerController::class);

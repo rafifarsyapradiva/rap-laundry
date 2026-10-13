@@ -7,6 +7,7 @@ use App\Models\BusinessSetting;
 use App\Models\Customer;
 use App\Models\Order;
 use App\Models\Service;
+use App\Services\OrderService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -55,15 +56,40 @@ class OrderController extends Controller
     }
 
     /**
-     * Simpan transaksi pesanan baru.
-     * Logika persistensi dan kalkulasi database menyeluruh akan dilengkapi pada Task 6.2.
+     * Simpan transaksi pesanan baru ke dalam database secara atomik.
      */
-    public function store(StoreOrderRequest $request): RedirectResponse
+    public function store(StoreOrderRequest $request, OrderService $orderService): RedirectResponse
     {
-        // Validasi form StoreOrderRequest telah berhasil diverifikasi
-        // Pada Task 6.2, OrderService::createOrder() akan dipanggil di sini.
-        return redirect()
-            ->route('orders.create')
-            ->with('success', 'Form pesanan valid dan siap diproses ke database transaksi.');
+        $order = $orderService->createOrder(
+            data: $request->validated(),
+            operator: $request->user()
+        );
+
+        $targetRoute = \Illuminate\Support\Facades\Route::has('orders.show')
+            ? route('orders.show', $order)
+            : route('orders.create');
+
+        return redirect($targetRoute)
+            ->with('success', "Pesanan {$order->order_number} berhasil dibuat dan disimpan.");
+    }
+
+    /**
+     * Tampilkan halaman rincian detail transaksi pesanan.
+     */
+    public function show(Order $order): View
+    {
+        Gate::authorize('view', $order);
+
+        // Eager load relasi penting untuk eliminasi N+1 query loop
+        $order->load([
+            'customer',
+            'items',
+            'creator',
+            'canceller',
+            'validPayments.recorder',
+            'statusHistories.changer',
+        ]);
+
+        return view('orders.show', compact('order'));
     }
 }

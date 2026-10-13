@@ -107,4 +107,52 @@ class Order extends Model
     {
         return $query->where('payment_status', $status->value);
     }
+
+    /**
+     * Total nominal pembayaran valid yang telah masuk.
+     */
+    public function getTotalPaidAttribute(): float
+    {
+        return (float) $this->validPayments()->sum('amount');
+    }
+
+    /**
+     * Sisa saldo tagihan yang belum lunas.
+     */
+    public function getRemainingBalanceAttribute(): float
+    {
+        return max(0.0, (float) $this->total_amount - $this->total_paid);
+    }
+
+    /**
+     * Periksa apakah transaksi pesanan telah berstatus lunas.
+     */
+    public function getIsPaidAttribute(): bool
+    {
+        return $this->payment_status === PaymentStatus::Lunas;
+    }
+
+    /**
+     * Periksa apakah transaksi pesanan telah dibatalkan.
+     */
+    public function getIsCancelledAttribute(): bool
+    {
+        return $this->laundry_status === LaundryStatus::Dibatalkan;
+    }
+
+    /**
+     * Format Rupiah untuk total tagihan.
+     */
+    public function getFormattedTotalAmountAttribute(): string
+    {
+        return 'Rp' . number_format((float) $this->total_amount, 0, ',', '.');
+    }
+
+    /**
+     * Format Rupiah untuk sisa tagihan.
+     */
+    public function getFormattedRemainingBalanceAttribute(): string
+    {
+        return 'Rp' . number_format($this->remaining_balance, 0, ',', '.');
+    }
 }

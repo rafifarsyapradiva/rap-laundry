@@ -222,34 +222,34 @@ Jangan menandai task sebagai `[x]` jika belum diverifikasi.
 - [x] Sediakan diskon dan biaya tambahan sesuai izin yang ditentukan.
 
 ### Task 6.2 — Logika perhitungan
-- [ ] Hitung subtotal setiap item di server.
-- [ ] Hitung subtotal pesanan, diskon, biaya tambahan, dan total di server.
-- [ ] Gunakan `DECIMAL` untuk nominal uang.
-- [ ] Jangan mempercayai nilai harga atau total yang dikirim dari browser.
-- [ ] Simpan snapshot nama layanan, satuan, dan harga.
-- [ ] Gunakan database transaction untuk menyimpan order dan semua item.
-- [ ] Pastikan kegagalan menyimpan item membatalkan seluruh transaksi database.
-- [ ] Buat nomor transaksi unik, misalnya `LD-YYYYMMDD-0001`.
-- [ ] Pastikan nomor transaksi aman dari duplikasi pada akses bersamaan.
+- [x] Hitung subtotal setiap item di server.
+- [x] Hitung subtotal pesanan, diskon, biaya tambahan, dan total di server.
+- [x] Gunakan `DECIMAL` untuk nominal uang.
+- [x] Jangan mempercayai nilai harga atau total yang dikirim dari browser.
+- [x] Simpan snapshot nama layanan, satuan, dan harga.
+- [x] Gunakan database transaction untuk menyimpan order dan semua item.
+- [x] Pastikan kegagalan menyimpan item membatalkan seluruh transaksi database.
+- [x] Buat nomor transaksi unik, misalnya `LD-YYYYMMDD-0001`.
+- [x] Pastikan nomor transaksi aman dari duplikasi pada akses bersamaan.
 
 ### Task 6.3 — Detail transaksi
-- [ ] Buat halaman detail pesanan.
-- [ ] Tampilkan pelanggan, item layanan, total, pembayaran, sisa tagihan, estimasi selesai, dan status.
-- [ ] Tampilkan petugas penerima pesanan.
-- [ ] Tampilkan riwayat status.
-- [ ] Sediakan tindakan sesuai role dan status transaksi.
+- [x] Buat halaman detail pesanan.
+- [x] Tampilkan pelanggan, item layanan, total, pembayaran, sisa tagihan, estimasi selesai, dan status.
+- [x] Tampilkan petugas penerima pesanan.
+- [x] Tampilkan riwayat status.
+- [x] Sediakan tindakan sesuai role dan status transaksi.
 
 ### Task 6.4 — Pengujian transaksi
-- [ ] Uji pesanan dengan satu item.
-- [ ] Uji pesanan dengan beberapa item.
-- [ ] Uji berat desimal, misalnya 2,5 kg.
-- [ ] Uji kuantitas nol/negatif.
-- [ ] Uji diskon dan biaya tambahan.
-- [ ] Uji manipulasi harga melalui browser.
-- [ ] Uji nomor transaksi unik.
-- [ ] Uji rollback ketika penyimpanan gagal.
+- [x] Uji pesanan dengan satu item.
+- [x] Uji pesanan dengan beberapa item.
+- [x] Uji berat desimal, misalnya 2,5 kg.
+- [x] Uji kuantitas nol/negatif.
+- [x] Uji diskon dan biaya tambahan.
+- [x] Uji manipulasi harga melalui browser.
+- [x] Uji nomor transaksi unik.
+- [x] Uji rollback ketika penyimpanan gagal.
 
-**Gate 6:** Jangan lanjut sebelum total transaksi dapat diverifikasi dengan perhitungan manual dan pengujian otomatis.
+**Gate 6:** Jangan lanjut sebelum total transaksi dapat diverifikasi dengan perhitungan manual dan pengujian otomatis. (LULUS)
 
 ---
 
