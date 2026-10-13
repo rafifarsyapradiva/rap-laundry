@@ -19,7 +19,8 @@ use Illuminate\Support\Facades\DB;
 class OrderService
 {
     public function __construct(
-        protected NumberSequenceService $sequenceService
+        protected NumberSequenceService $sequenceService,
+        protected PaymentService $paymentService
     ) {}
 
     /**
@@ -111,7 +112,7 @@ class OrderService
                 'total_amount' => $totalAmount,
                 'notes' => ! empty($data['notes']) ? trim((string) $data['notes']) : null,
                 'laundry_status' => LaundryStatus::Diterima->value,
-                'payment_status' => PaymentStatus::BelumDibayar->value,
+                'payment_status' => $totalAmount <= 0 ? PaymentStatus::Lunas->value : PaymentStatus::BelumDibayar->value,
             ]);
 
             // 7. Simpan detail item pesanan dengan snapshot
@@ -125,7 +126,15 @@ class OrderService
                 'note' => 'Pesanan baru diterima dan dicatat ke sistem.',
             ]);
 
-            // 9. Rekam jejak audit aktivitas
+            // 9. Jika terdapat pembayaran awal (uang muka/DP) opsional, catat secara atomik
+            if (! empty($data['initial_payment']) && is_array($data['initial_payment'])) {
+                $initAmount = (float) ($data['initial_payment']['amount'] ?? 0);
+                if ($initAmount > 0) {
+                    $this->paymentService->recordPayment($order, $data['initial_payment'], $operator);
+                }
+            }
+
+            // 10. Rekam jejak audit aktivitas
             ActivityLog::create([
                 'user_id' => $operator->id,
                 'action' => ActivityAction::OrderCreated,
@@ -145,7 +154,7 @@ class OrderService
                 ],
             ]);
 
-            return $order->load(['customer', 'items', 'creator', 'statusHistories']);
+            return $order->fresh(['customer', 'items', 'creator', 'statusHistories', 'validPayments']);
         });
     }
 
@@ -184,12 +193,28 @@ class OrderService
             );
         }
 
-        if ($newStatus === LaundryStatus::Dibatalkan && empty(trim((string) $cancellationReason))) {
-            throw new DomainException('Alasan pembatalan pesanan wajib diisi.');
+        if ($newStatus === LaundryStatus::Dibatalkan) {
+            if (empty(trim((string) $cancellationReason))) {
+                throw new DomainException('Alasan pembatalan pesanan wajib diisi.');
+            }
+
+            // Keputusan Q3: Tolak pembatalan pesanan jika masih ada pembayaran valid
+            if ($order->validPayments()->exists()) {
+                throw new DomainException(
+                    "Pesanan {$order->order_number} tidak dapat dibatalkan karena masih memiliki pembayaran berstatus valid. Lakukan pembatalan (void) seluruh pembayaran terlebih dahulu."
+                );
+            }
         }
 
         return DB::transaction(function () use ($order, $newStatus, $operator, $note, $cancellationReason): Order {
             $oldStatus = $order->laundry_status;
+
+            // Re-check di dalam transaction lock
+            if ($newStatus === LaundryStatus::Dibatalkan && $order->validPayments()->exists()) {
+                throw new DomainException(
+                    "Pesanan {$order->order_number} tidak dapat dibatalkan karena masih memiliki pembayaran berstatus valid. Lakukan pembatalan (void) seluruh pembayaran terlebih dahulu."
+                );
+            }
 
             $updates = [
                 'laundry_status' => $newStatus->value,

@@ -209,25 +209,32 @@ Tidak semua layanan harus melewati seluruh status. Rancang transisi status yang 
 Simpan riwayat perubahan status, termasuk status sebelumnya, status baru, waktu perubahan, petugas, dan catatan opsional. Tampilkan riwayat pada halaman detail pesanan.
 
 ### 5.7 Pembayaran Manual
-Tidak ada payment gateway online. Pembayaran dicatat oleh kasir ketika uang diterima.
+Tidak ada payment gateway online. Pembayaran dicatat oleh kasir ketika uang diterima secara fisik atau manual.
 
 Metode yang dapat dicatat:
 - Tunai.
 - Transfer bank (diverifikasi manual).
 - QRIS di luar aplikasi (diverifikasi manual).
-- Metode lain yang dapat diatur.
+- Metode lain yang dikonfigurasi melalui pengaturan usaha.
 
-Fungsi:
-- Pembayaran penuh atau sebagian.
-- Pembayaran awal/uang muka.
-- Pelunasan pada waktu berbeda.
-- Catatan referensi pembayaran opsional.
-- Riwayat semua pembayaran.
-- Status pembayaran otomatis: `Belum Dibayar`, `Dibayar Sebagian`, `Lunas`, atau `Pengembalian` jika fitur refund manual diterapkan.
-- Hitung sisa tagihan dari total transaksi dikurangi total pembayaran yang valid.
-- Jangan menganggap pembayaran berhasil hanya karena metode dipilih; kasir harus menyimpan catatan pembayaran yang benar-benar diterima.
-- Jangan izinkan total pembayaran melebihi saldo yang harus dibayar kecuali ada alur kelebihan bayar yang dirancang dan diuji.
-- Perubahan/pembatalan pembayaran harus dibatasi dan tercatat dalam audit log.
+Fungsi dan Ketentuan Bisnis:
+- **Dukungan Pembayaran Penuh, Sebagian, dan Uang Muka (DP):**
+  - Pembayaran awal/uang muka dapat dicatat seketika saat pembuatan pesanan baru (terintegrasi dalam satu transaksi database atomik) maupun melalui formulir pencatatan pembayaran di halaman detail pesanan.
+  - Pelunasan dapat dilakukan bertahap pada waktu berbeda hingga saldo tagihan mencapai Rp0.
+- **Integritas Nominal dan Penanganan Kelebihan Bayar (Overpayment):**
+  - Validasi nominal pembayaran di sisi server: `1 ≤ amount ≤ sisa tagihan`. Nominal yang diaplikasikan ke tagihan tidak boleh melebihi sisa tagihan.
+  - Khusus metode **Tunai**, sistem mendukung pencatatan uang fisik yang diserahkan pelanggan (`cash_tendered`) dan menghitung uang kembalian (`change_amount = cash_tendered - amount`) di server. Hal ini memungkinkan pencetakan rincian pembayaran/kembalian pada nota kasir serta mempermudah rekonsiliasi kas laci kasir di akhir sesi kerja. Uang kembalian tidak mengurangi kas masuk; kas masuk tetap dihitung murni dari `amount`.
+- **Tanggal Pembayaran & Kontrol Backdate:**
+  - Kasir mencatat pembayaran dengan `payment_date` otomatis mengikuti waktu server saat ini.
+  - Opsi *backdate* (penyesuaian tanggal lampau) dibatasi secara ketat hanya untuk peran **Administrator/Pemilik** (misalnya untuk mencatat mutasi transfer bank yang baru direkonsiliasi), wajib menyertakan catatan tertulis, dan diberi penanda khusus `is_backdated` pada log audit sistem. Tanggal backdate tidak boleh mendahului tanggal masuk pesanan (`received_at`) atau melampaui waktu saat ini.
+- **Status Pembayaran Otomatis:**
+  - Status pembayaran diturunkan secara deterministik dari total pembayaran valid: `Belum Dibayar` (Rp0), `Dibayar Sebagian` (0 < paid < total), atau `Lunas` (paid ≥ total).
+  - Pesanan dengan total tagihan Rp0 (karena diskon penuh 100%) otomatis berstatus `Lunas`.
+  - Sisa tagihan dihitung dari total transaksi dikurangi total pembayaran berstatus valid.
+- **Prinsip Anti-Silent Edit & Mekanisme Void Pembayaran:**
+  - Data pembayaran historis tidak boleh diedit atau dihapus secara fisik (*no silent edit or delete*).
+  - Koreksi pembayaran wajib menggunakan mekanisme **Void Pembayaran** yang dibatasi secara eksklusif kepada peran **Administrator/Pemilik**, dengan alasan pembatalan tertulis (minimal 10 karakter) dan jejak audit aktivitas yang lengkap.
+  - Pembatalan pesanan cucian ditolak jika masih terdapat pembayaran berstatus `valid` (seluruh pembayaran harus di-void terlebih dahulu).
 
 ### 5.8 Nota dan Cetak
 Sediakan nota transaksi yang ramah cetak:
@@ -364,7 +371,7 @@ Gunakan migration Laravel untuk seluruh skema. Nama tabel boleh disesuaikan jika
 5. `order_items`
    - `id`, `order_id`, `service_id` nullable bila layanan diarsipkan/dihapus secara logis, `service_name_snapshot`, `billing_unit_snapshot`, `quantity` DECIMAL, `unit_price` DECIMAL, `subtotal` DECIMAL, `notes` nullable, timestamps.
 6. `payments`
-   - `id`, `order_id`, `recorded_by`, `payment_date`, `amount` DECIMAL, `method`, `reference` nullable, `notes` nullable, `status` (misalnya valid/voided), `voided_by` nullable, `voided_at` nullable, timestamps.
+   - `id`, `order_id`, `recorded_by`, `payment_date`, `amount` DECIMAL, `method`, `cash_tendered` DECIMAL nullable, `change_amount` DECIMAL nullable, `reference` nullable, `notes` nullable, `status` (valid/voided), `voided_by` nullable, `voided_at` nullable, `void_reason` nullable, timestamps.
 7. `order_status_histories`
    - `id`, `order_id`, `from_status` nullable, `to_status`, `changed_by`, `note` nullable, timestamps.
 8. `business_settings`

@@ -341,6 +341,166 @@
             </div>
         </div>
 
+        <!-- ===================================================================
+             KARTU 5: PEMBAYARAN AWAL / UANG MUKA (OPSIONAL)
+             =================================================================== -->
+        <div class="glass-card" style="padding: var(--space-6); margin-bottom: var(--space-6);">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-subtle); padding-bottom: var(--space-4); margin-bottom: var(--space-5); flex-wrap: wrap; gap: var(--space-3);">
+                <div>
+                    <h2 style="font-size: var(--text-lg); font-weight: var(--font-bold); color: var(--text-main); display: flex; align-items: center; gap: var(--space-2);">
+                        <x-icon name="payments" size="20" class="icon-primary" />
+                        <span>5. Pembayaran Awal / Uang Muka (Opsional)</span>
+                    </h2>
+                    <p style="color: var(--text-muted); font-size: var(--text-xs); margin-top: var(--space-1);">
+                        Pelanggan dapat melakukan pelunasan langsung atau membayar uang muka (DP) saat cucian diterima.
+                    </p>
+                </div>
+                <div style="display: flex; align-items: center; gap: var(--space-2);">
+                    <label style="display: flex; align-items: center; gap: var(--space-2); cursor: pointer; font-size: var(--text-sm); font-weight: var(--font-semibold); color: var(--text-main);">
+                        <input type="checkbox" id="toggle-initial-payment" {{ old('initial_payment.amount') ? 'checked' : '' }} style="width: 18px; height: 18px; cursor: pointer; accent-color: var(--primary);">
+                        <span>Catat Pembayaran Sekarang</span>
+                    </label>
+                </div>
+            </div>
+
+            <div id="initial-payment-container" style="display: {{ old('initial_payment.amount') ? 'block' : 'none' }};">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: var(--space-6);">
+                    <!-- Kolom Kiri: Nominal & Metode -->
+                    <div style="display: flex; flex-direction: column; gap: var(--space-4);">
+                        <div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-1);">
+                                <label for="initial_payment_amount" class="form-label" style="font-weight: var(--font-semibold); margin-bottom: 0;">
+                                    Nominal Bayar (Rp) <span style="color: var(--status-danger);">*</span>
+                                </label>
+                                <div style="display: flex; gap: var(--space-1);">
+                                    <button type="button" class="btn btn-secondary btn-sm" id="btn-pay-full" style="padding: 2px 8px; font-size: 11px;">Lunas (100%)</button>
+                                    <button type="button" class="btn btn-secondary btn-sm" id="btn-pay-dp-50" style="padding: 2px 8px; font-size: 11px;">DP 50%</button>
+                                </div>
+                            </div>
+                            <div style="position: relative;">
+                                <span style="position: absolute; left: var(--space-3); top: 50%; transform: translateY(-50%); color: var(--text-muted); font-weight: var(--font-bold);">
+                                    Rp
+                                </span>
+                                <input type="text"
+                                       name="initial_payment[amount]"
+                                       id="initial_payment_amount"
+                                       class="form-control"
+                                       style="padding-left: 45px; font-weight: var(--font-bold); font-size: var(--text-lg);"
+                                       value="{{ old('initial_payment.amount') }}"
+                                       placeholder="0" />
+                            </div>
+                            <div id="initial-pay-overpay-msg" style="display: none; color: var(--status-danger); font-size: var(--text-xs); margin-top: var(--space-1); font-weight: var(--font-medium);">
+                                Nominal pembayaran melebihi total tagihan cucian!
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="initial_payment_method" class="form-label" style="font-weight: var(--font-semibold);">
+                                Metode Pembayaran <span style="color: var(--status-danger);">*</span>
+                            </label>
+                            <select name="initial_payment[method]" id="initial_payment_method" class="form-control form-select">
+                                @foreach(\App\Enums\PaymentMethod::cases() as $method)
+                                    <option value="{{ $method->value }}" {{ old('initial_payment.method') === $method->value ? 'selected' : '' }}>
+                                        {{ $method->label() }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <!-- Tunai: Uang Diterima & Kembalian -->
+                        <div id="initial-cash-tendered-group" style="background-color: var(--bg-surface-elevated); border: 1px dashed var(--border-glass); border-radius: var(--radius-md); padding: var(--space-4);">
+                            <label for="initial_payment_cash_tendered" class="form-label" style="font-weight: var(--font-semibold); font-size: var(--text-xs);">
+                                Uang Tunai Diterima dari Pelanggan (Rp)
+                            </label>
+                            <div style="position: relative;">
+                                <span style="position: absolute; left: var(--space-3); top: 50%; transform: translateY(-50%); color: var(--text-muted); font-weight: var(--font-bold);">
+                                    Rp
+                                </span>
+                                <input type="text"
+                                       name="initial_payment[cash_tendered]"
+                                       id="initial_payment_cash_tendered"
+                                       class="form-control"
+                                       style="padding-left: 45px; font-weight: var(--font-semibold);"
+                                       value="{{ old('initial_payment.cash_tendered') }}"
+                                       placeholder="0" />
+                            </div>
+                            <div style="display: flex; gap: var(--space-1); margin-top: var(--space-2); flex-wrap: wrap;">
+                                <button type="button" class="btn btn-secondary btn-sm btn-init-quick-cash" data-add="exact" style="padding: 2px 6px; font-size: 11px;">Uang Pas</button>
+                                <button type="button" class="btn btn-secondary btn-sm btn-init-quick-cash" data-add="20000" style="padding: 2px 6px; font-size: 11px;">20.000</button>
+                                <button type="button" class="btn btn-secondary btn-sm btn-init-quick-cash" data-add="50000" style="padding: 2px 6px; font-size: 11px;">50.000</button>
+                                <button type="button" class="btn btn-secondary btn-sm btn-init-quick-cash" data-add="100000" style="padding: 2px 6px; font-size: 11px;">100.000</button>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: var(--space-3); padding-top: var(--space-2); border-top: 1px solid var(--border-subtle);">
+                                <span style="font-size: var(--text-xs); color: var(--text-muted);">Uang Kembalian:</span>
+                                <strong id="initial-cash-change-display" style="font-size: var(--text-base); color: var(--status-success);">Rp 0</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Kolom Kanan: Referensi, Catatan, & Konfirmasi Fisik Uang -->
+                    <div style="display: flex; flex-direction: column; gap: var(--space-4);">
+                        <div>
+                            <label for="initial_payment_reference" class="form-label" style="font-weight: var(--font-semibold);">
+                                Nomor Referensi / ID Transaksi (Opsional)
+                            </label>
+                            <input type="text"
+                                   name="initial_payment[reference]"
+                                   id="initial_payment_reference"
+                                   class="form-control"
+                                   value="{{ old('initial_payment.reference') }}"
+                                   placeholder="Contoh: REF-BCA-12345 atau RRN QRIS" />
+                            <div style="font-size: var(--text-xs); color: var(--text-muted); margin-top: var(--space-1);">
+                                Wajib dicatat untuk verifikasi transfer bank / settlement QRIS eksternal.
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="initial_payment_notes" class="form-label" style="font-weight: var(--font-semibold);">
+                                Catatan Pembayaran (Opsional)
+                            </label>
+                            <input type="text"
+                                   name="initial_payment[notes]"
+                                   id="initial_payment_notes"
+                                   class="form-control"
+                                   value="{{ old('initial_payment.notes') }}"
+                                   placeholder="Misal: Uang muka 50% diterima kasir" />
+                        </div>
+
+                        <!-- Panel Sisa Tagihan Setelah Pembayaran Awal -->
+                        <div style="background-color: var(--primary-subtle); border: 1px solid var(--primary-light); border-radius: var(--radius-md); padding: var(--space-4); margin-top: auto;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-1);">
+                                <span style="font-size: var(--text-xs); color: var(--text-muted);">Total Tagihan Pesanan:</span>
+                                <strong id="init-panel-total" style="color: var(--text-main);">Rp 0</strong>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-1);">
+                                <span style="font-size: var(--text-xs); color: var(--text-muted);">Pembayaran Awal:</span>
+                                <strong id="init-panel-paid" style="color: var(--status-success);">Rp 0</strong>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px dashed var(--primary-light); padding-top: var(--space-2); margin-top: var(--space-2);">
+                                <span style="font-size: var(--text-sm); font-weight: var(--font-bold); color: var(--text-main);">Sisa Tagihan Belum Lunas:</span>
+                                <strong id="init-panel-balance" style="font-size: var(--text-lg); font-weight: var(--font-extrabold); color: var(--status-danger);">Rp 0</strong>
+                            </div>
+                        </div>
+
+                        <!-- Checkbox Konfirmasi Fisik Uang Diterima -->
+                        <div style="background-color: var(--status-info-bg, rgba(59, 130, 246, 0.08)); border: 1px solid var(--status-info, #3b82f6); border-radius: var(--radius-md); padding: var(--space-3);">
+                            <label style="display: flex; align-items: flex-start; gap: var(--space-2); cursor: pointer; font-size: var(--text-xs); color: var(--text-main);">
+                                <input type="checkbox"
+                                       name="initial_payment[confirm_received]"
+                                       id="initial_payment_confirm"
+                                       value="1"
+                                       {{ old('initial_payment.confirm_received') ? 'checked' : '' }}
+                                       style="width: 16px; height: 16px; margin-top: 2px; accent-color: var(--primary);">
+                                <span>
+                                    <strong>Konfirmasi Penerimaan Riil:</strong> Saya menyatakan telah menerima fisik uang tunai atau mutasi pembayaran riil ini sesuai SOP keuangan.
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Tombol Aksi Pengiriman Form -->
         <div style="display: flex; justify-content: flex-end; align-items: center; gap: var(--space-3); margin-bottom: var(--space-8);">
             <a href="{{ route('dashboard') }}" class="btn btn-secondary">

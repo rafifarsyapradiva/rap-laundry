@@ -209,6 +209,8 @@
         const grandTotal = Math.max(0, subtotal - rawDiscount + extraCharge);
         const grandTotalEl = document.getElementById('summary-grand-total');
         if (grandTotalEl) grandTotalEl.textContent = formatRupiah(grandTotal);
+
+        recalculateInitialPayment(grandTotal);
     }
 
     /**
@@ -481,6 +483,149 @@
         }
     }
 
+    let currentGrandTotal = 0;
+
+    /**
+     * Hitung ulang ringkasan panel pembayaran awal (DP/Pelunasan)
+     */
+    function recalculateInitialPayment(grandTotal) {
+        currentGrandTotal = grandTotal;
+        const container = document.getElementById('initial-payment-container');
+        if (!container) return;
+
+        const totalDisplay = document.getElementById('init-panel-total');
+        if (totalDisplay) totalDisplay.textContent = formatRupiah(grandTotal);
+
+        const amountInput = document.getElementById('initial_payment_amount');
+        const paidDisplay = document.getElementById('init-panel-paid');
+        const balanceDisplay = document.getElementById('init-panel-balance');
+        const overpayMsg = document.getElementById('initial-pay-overpay-msg');
+
+        const amount = amountInput ? parseNumber(amountInput.value) : 0;
+
+        if (paidDisplay) paidDisplay.textContent = formatRupiah(amount);
+
+        if (amount > grandTotal) {
+            if (overpayMsg) overpayMsg.style.display = 'block';
+            if (balanceDisplay) balanceDisplay.textContent = formatRupiah(0);
+        } else {
+            if (overpayMsg) overpayMsg.style.display = 'none';
+            const remaining = Math.max(0, grandTotal - amount);
+            if (balanceDisplay) balanceDisplay.textContent = formatRupiah(remaining);
+        }
+
+        updateInitialCashChange();
+    }
+
+    /**
+     * Hitung kembalian uang tunai pembayaran awal
+     */
+    function updateInitialCashChange() {
+        const methodSelect = document.getElementById('initial_payment_method');
+        const cashGroup = document.getElementById('initial-cash-tendered-group');
+        const cashInput = document.getElementById('initial_payment_cash_tendered');
+        const changeDisplay = document.getElementById('initial-cash-change-display');
+        const amountInput = document.getElementById('initial_payment_amount');
+
+        if (!methodSelect) return;
+
+        const isCash = methodSelect.value === 'tunai';
+        if (cashGroup) {
+            cashGroup.style.display = isCash ? 'block' : 'none';
+        }
+
+        if (isCash && cashInput && changeDisplay && amountInput) {
+            const amount = parseNumber(amountInput.value);
+            const tendered = parseNumber(cashInput.value);
+            const change = Math.max(0, tendered - amount);
+            changeDisplay.textContent = formatRupiah(change);
+        }
+    }
+
+    /**
+     * Inisialisasi modul pembayaran awal (DP / Pelunasan)
+     */
+    function initInitialPaymentModule() {
+        const toggle = document.getElementById('toggle-initial-payment');
+        const container = document.getElementById('initial-payment-container');
+        if (!toggle || !container) return;
+
+        function updateToggleState() {
+            const isChecked = toggle.checked;
+            container.style.display = isChecked ? 'block' : 'none';
+            const inputs = container.querySelectorAll('input, select');
+            inputs.forEach(function (inp) {
+                inp.disabled = !isChecked;
+            });
+            if (!isChecked) {
+                const amountInput = document.getElementById('initial_payment_amount');
+                if (amountInput) amountInput.value = '';
+            }
+            recalculateInitialPayment(currentGrandTotal);
+        }
+
+        toggle.addEventListener('change', updateToggleState);
+        updateToggleState();
+
+        const amountInput = document.getElementById('initial_payment_amount');
+        if (amountInput) {
+            amountInput.addEventListener('input', function () {
+                this.value = this.value.replace(/[^0-9]/g, '');
+                recalculateInitialPayment(currentGrandTotal);
+            });
+        }
+
+        const methodSelect = document.getElementById('initial_payment_method');
+        if (methodSelect) {
+            methodSelect.addEventListener('change', function () {
+                updateInitialCashChange();
+            });
+        }
+
+        const cashInput = document.getElementById('initial_payment_cash_tendered');
+        if (cashInput) {
+            cashInput.addEventListener('input', function () {
+                this.value = this.value.replace(/[^0-9]/g, '');
+                updateInitialCashChange();
+            });
+        }
+
+        // Tombol cepat Lunas (100%)
+        const btnPayFull = document.getElementById('btn-pay-full');
+        if (btnPayFull && amountInput) {
+            btnPayFull.addEventListener('click', function () {
+                amountInput.value = currentGrandTotal > 0 ? currentGrandTotal : 0;
+                recalculateInitialPayment(currentGrandTotal);
+            });
+        }
+
+        // Tombol cepat DP 50%
+        const btnPayDp50 = document.getElementById('btn-pay-dp-50');
+        if (btnPayDp50 && amountInput) {
+            btnPayDp50.addEventListener('click', function () {
+                amountInput.value = currentGrandTotal > 0 ? Math.round(currentGrandTotal / 2) : 0;
+                recalculateInitialPayment(currentGrandTotal);
+            });
+        }
+
+        // Tombol cepat nominal uang tunai
+        document.querySelectorAll('.btn-init-quick-cash').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                const addVal = this.getAttribute('data-add');
+                const currentAmount = amountInput ? parseNumber(amountInput.value) : 0;
+                if (!cashInput) return;
+
+                if (addVal === 'exact') {
+                    cashInput.value = currentAmount;
+                } else {
+                    const denom = parseInt(addVal, 10) || 0;
+                    cashInput.value = denom;
+                }
+                updateInitialCashChange();
+            });
+        });
+    }
+
     // Eksekusi utama saat DOM siap
     document.addEventListener('DOMContentLoaded', function () {
         initServicesCatalog();
@@ -522,9 +667,10 @@
             receivedAtInput.addEventListener('change', recalculateEstimatedCompletion);
         }
 
-        // Inisialisasi modal & presets
+        // Inisialisasi modal, presets, & pembayaran awal
         initQuickCustomerModal();
         initEstimatedCompletionPresets();
+        initInitialPaymentModule();
 
         // Render baris awal (dari old data jika validasi gagal, atau 1 baris kosong)
         if (Array.isArray(window.ORDER_OLD_ITEMS) && window.ORDER_OLD_ITEMS.length > 0) {

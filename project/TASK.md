@@ -288,33 +288,34 @@ Jangan menandai task sebagai `[x]` jika belum diverifikasi.
 ## Fase 8 — Pembayaran Manual
 
 ### Task 8.1 — Pencatatan pembayaran
-- [ ] Buat form pencatatan pembayaran.
-- [ ] Dukung pembayaran penuh dan sebagian.
-- [ ] Dukung metode tunai, transfer bank, QRIS eksternal, dan metode lain yang dikonfigurasi.
-- [ ] Simpan waktu pembayaran, nominal, metode, petugas, dan referensi opsional.
-- [ ] Gunakan database transaction saat mencatat pembayaran.
-- [ ] Validasi nominal pembayaran di server.
-- [ ] Tolak pembayaran melebihi sisa tagihan sesuai aturan bisnis.
-- [ ] Jangan menganggap pembayaran valid hanya karena metode dipilih.
+- [x] Buat form pencatatan pembayaran (baik di halaman detail pesanan maupun uang muka di form pesanan baru).
+- [x] Dukung pembayaran penuh dan sebagian (DP dan pelunasan bertahap).
+- [x] Dukung metode tunai (dengan pencatatan `cash_tendered` dan hitung `change_amount`), transfer bank, QRIS eksternal, dan metode lain yang dikonfigurasi.
+- [x] Simpan waktu pembayaran, nominal, metode, petugas, dan referensi opsional.
+- [x] Gunakan database transaction saat mencatat pembayaran.
+- [x] Validasi nominal pembayaran di server.
+- [x] Tolak pembayaran melebihi sisa tagihan sesuai aturan bisnis.
+- [x] Jangan menganggap pembayaran valid hanya karena metode dipilih (wajib verifikasi penerimaan dana fisik/manual).
 
 ### Task 8.2 — Status pembayaran dan koreksi
-- [ ] Hitung total pembayaran valid.
-- [ ] Hitung sisa tagihan.
-- [ ] Perbarui status `Belum Dibayar`, `Dibayar Sebagian`, atau `Lunas`.
-- [ ] Jika koreksi pembayaran diperlukan, gunakan mekanisme void/pembatalan dengan alasan dan jejak audit.
-- [ ] Batasi koreksi pembayaran kepada role yang berwenang.
-- [ ] Pastikan riwayat pembayaran tidak dihapus diam-diam.
+- [x] Hitung total pembayaran valid.
+- [x] Hitung sisa tagihan.
+- [x] Perbarui status `Belum Dibayar`, `Dibayar Sebagian`, atau `Lunas`.
+- [x] Jika koreksi pembayaran diperlukan, gunakan mekanisme void/pembatalan dengan alasan dan jejak audit.
+- [x] Batasi koreksi pembayaran kepada role yang berwenang (khusus Administrator/Pemilik).
+- [x] Pastikan riwayat pembayaran tidak dihapus diam-diam (proteksi model anti-silent edit/delete).
+- [x] Tolak pembatalan pesanan jika masih terdapat pembayaran valid.
 
 ### Task 8.3 — Pengujian pembayaran
-- [ ] Uji pesanan belum dibayar.
-- [ ] Uji pembayaran sebagian.
-- [ ] Uji pelunasan.
-- [ ] Uji pembayaran berlebih.
-- [ ] Uji pembatalan/koreksi pembayaran.
-- [ ] Uji perhitungan sisa tagihan setelah koreksi.
-- [ ] Uji laporan kas masuk berdasarkan tanggal pembayaran.
+- [x] Uji pesanan belum dibayar.
+- [x] Uji pembayaran sebagian.
+- [x] Uji pelunasan.
+- [x] Uji pembayaran berlebih.
+- [x] Uji pembatalan/koreksi pembayaran (void).
+- [x] Uji perhitungan sisa tagihan setelah koreksi.
+- [x] Uji laporan kas masuk berdasarkan tanggal pembayaran.
 
-**Gate 8:** Nilai transaksi, uang diterima, dan saldo tagihan harus dibedakan dengan benar.
+**Gate 8:** Nilai transaksi, uang diterima, dan saldo tagihan harus dibedakan dengan benar. (LULUS)
 
 ---
 

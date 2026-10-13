@@ -91,11 +91,14 @@ class OrderController extends Controller
             'items',
             'creator',
             'canceller',
-            'validPayments.recorder',
+            'payments.recorder',
+            'payments.voider',
             'statusHistories.changer',
         ]);
 
-        return view('orders.show', compact('order'));
+        $paymentMethods = \App\Enums\PaymentMethod::cases();
+
+        return view('orders.show', compact('order', 'paymentMethods'));
     }
 
     /**

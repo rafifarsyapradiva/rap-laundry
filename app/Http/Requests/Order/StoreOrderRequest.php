@@ -60,6 +60,35 @@ class StoreOrderRequest extends FormRequest
         if ($this->has('notes')) {
             $this->merge(['notes' => trim((string) $this->input('notes'))]);
         }
+
+        if ($this->has('initial_payment') && is_array($this->input('initial_payment'))) {
+            $initPayment = $this->input('initial_payment');
+            $cleanedAmount = isset($initPayment['amount']) ? preg_replace('/[^0-9]/', '', (string) $initPayment['amount']) : '';
+            if ($cleanedAmount !== '' && (int) $cleanedAmount > 0) {
+                $initPayment['amount'] = (int) $cleanedAmount;
+
+                if (isset($initPayment['cash_tendered']) && $initPayment['cash_tendered'] !== '' && $initPayment['cash_tendered'] !== null) {
+                    $cleanedTendered = preg_replace('/[^0-9]/', '', (string) $initPayment['cash_tendered']);
+                    $initPayment['cash_tendered'] = $cleanedTendered !== '' ? (int) $cleanedTendered : null;
+                } else {
+                    $initPayment['cash_tendered'] = null;
+                }
+
+                if (isset($initPayment['reference'])) {
+                    $initPayment['reference'] = trim((string) $initPayment['reference']) ?: null;
+                }
+
+                if (isset($initPayment['notes'])) {
+                    $initPayment['notes'] = trim((string) $initPayment['notes']) ?: null;
+                }
+
+                $this->merge(['initial_payment' => $initPayment]);
+            } else {
+                $this->merge(['initial_payment' => null]);
+            }
+        } else {
+            $this->merge(['initial_payment' => null]);
+        }
     }
 
     /**
@@ -88,6 +117,13 @@ class StoreOrderRequest extends FormRequest
             'discount_amount' => ['nullable', 'numeric', 'min:0'],
             'extra_charge' => ['nullable', 'numeric', 'min:0'],
             'notes' => ['nullable', 'string', 'max:1000'],
+            'initial_payment' => ['nullable', 'array'],
+            'initial_payment.amount' => ['nullable', 'integer', 'min:1'],
+            'initial_payment.method' => ['exclude_without:initial_payment.amount', 'required', Rule::enum(\App\Enums\PaymentMethod::class)],
+            'initial_payment.cash_tendered' => ['exclude_without:initial_payment.amount', 'nullable', 'integer', 'min:1'],
+            'initial_payment.reference' => ['exclude_without:initial_payment.amount', 'nullable', 'string', 'max:100'],
+            'initial_payment.notes' => ['exclude_without:initial_payment.amount', 'nullable', 'string', 'max:255'],
+            'initial_payment.confirm_received' => ['exclude_without:initial_payment.amount', 'required', 'accepted'],
         ];
     }
 
@@ -117,6 +153,12 @@ class StoreOrderRequest extends FormRequest
             'extra_charge.numeric' => 'Biaya tambahan harus berupa angka.',
             'extra_charge.min' => 'Biaya tambahan tidak boleh bernilai negatif.',
             'notes.max' => 'Catatan pesanan maksimal 1000 karakter.',
+            'initial_payment.amount.integer' => 'Nominal pembayaran awal harus berupa angka bulat Rupiah.',
+            'initial_payment.amount.min' => 'Nominal pembayaran awal minimal Rp1.',
+            'initial_payment.method.required_with' => 'Metode pembayaran awal wajib dipilih bila nominal diisi.',
+            'initial_payment.cash_tendered.integer' => 'Uang tunai diterima harus berupa angka bulat Rupiah.',
+            'initial_payment.cash_tendered.min' => 'Uang tunai diterima minimal Rp1.',
+            'initial_payment.confirm_received.accepted' => 'Anda wajib mencentang konfirmasi penerimaan dana awal sebelum menyimpan pesanan.',
         ];
     }
 
@@ -189,6 +231,41 @@ class StoreOrderRequest extends FormRequest
                     $validator->errors()->add(
                         'discount_amount',
                         "Kasir hanya diizinkan memberikan diskon maksimal {$maxPercent}% (maksimal Rp" . number_format($maxAllowed, 0, ',', '.') . "). Diskon lebih besar membutuhkan otorisasi Admin."
+                    );
+                }
+            }
+
+            // Validasi: Pembayaran awal (uang muka/DP) tidak boleh melebihi grand total
+            $extraCharge = (float) $this->input('extra_charge', 0);
+            $totalAmount = max(0.0, round($serverSubtotal - $discountAmount + $extraCharge, 2));
+
+            $initPayment = $this->input('initial_payment');
+            if (is_array($initPayment) && ! empty($initPayment['amount'])) {
+                $initAmount = (int) $initPayment['amount'];
+                if ($initAmount > (int) round($totalAmount)) {
+                    $formattedInit = 'Rp' . number_format($initAmount, 0, ',', '.');
+                    $formattedTotal = 'Rp' . number_format((int) round($totalAmount), 0, ',', '.');
+                    $validator->errors()->add(
+                        'initial_payment.amount',
+                        "Nominal pembayaran awal ({$formattedInit}) melebihi total tagihan pesanan ({$formattedTotal})."
+                    );
+                }
+
+                $methodValue = $initPayment['method'] ?? null;
+                if ($methodValue === \App\Enums\PaymentMethod::Tunai->value) {
+                    $cashTendered = $initPayment['cash_tendered'] ?? null;
+                    if ($cashTendered !== null && (int) $cashTendered < $initAmount) {
+                        $validator->errors()->add(
+                            'initial_payment.cash_tendered',
+                            'Uang tunai yang diserahkan kurang dari nominal pembayaran awal yang dibayar.'
+                        );
+                    }
+                }
+
+                if ($methodValue === \App\Enums\PaymentMethod::Lainnya->value && empty($initPayment['notes'])) {
+                    $validator->errors()->add(
+                        'initial_payment.notes',
+                        'Keterangan catatan wajib diisi jika memilih metode pembayaran Lainnya.'
                     );
                 }
             }

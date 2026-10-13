@@ -23,6 +23,8 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Gate::policy(User::class, UserPolicy::class);
+        Gate::policy(\App\Models\Order::class, \App\Policies\OrderPolicy::class);
+        Gate::policy(\App\Models\Payment::class, \App\Policies\PaymentPolicy::class);
 
         Gate::define('manage-users', fn (User $user) => $user->isAdmin());
         Gate::define('manage-settings', fn (User $user) => $user->isAdmin());

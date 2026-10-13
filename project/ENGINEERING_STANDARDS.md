@@ -296,10 +296,18 @@ Status cucian dan status pembayaran adalah dua domain independen yang tidak bole
   - Setiap transisi status cucian wajib mencatat riwayat kronologis di tabel `order_status_histories` (status awal, status akhir, waktu, operator, dan catatan).
 
 ### 7.3 Logika Pembayaran Manual
-- Transaksi pembayaran offline dicatat saat kasir menerima fisik uang tunai, bukti transfer lokal, atau bukti QRIS manual.
-- Sistem mendukung pembayaran uang muka (DP), pelunasan bertahap, maupun pembayaran lunas di awal.
-- Pembayaran tidak boleh melebihi sisa tagihan yang harus dibayar, kecuali jika sistem secara eksplisit menangani kembalian uang tunai.
-- Pembatalan pembayaran (void) hanya dapat dilakukan oleh role Admin atau izin khusus, dan wajib mencatat alasan pembatalan pada audit log.
+- Transaksi pembayaran offline dicatat saat kasir menerima fisik uang tunai, bukti transfer bank, atau bukti QRIS manual yang telah diverifikasi kasir.
+- **Pembayaran Awal / Uang Muka (DP):** Sistem mendukung pencatatan pembayaran awal langsung saat pembuatan pesanan baru (dijalankan di dalam transaksi database atomik `DB::transaction` yang sama dengan pembuatan pesanan melalui `PaymentService`), maupun pembayaran bertahap di kemudian hari melalui formulir detail pesanan.
+- **Integritas Nilai dan Kembalian Tunai:**
+  - Nominal pembayaran yang diterapkan ke tagihan (`amount`) tidak boleh melebihi sisa tagihan (`1 ≤ amount ≤ sisa tagihan`). Pembayaran berlebih terhadap tagihan wajib ditolak oleh validasi server.
+  - Untuk metode pembayaran **Tunai**, sistem mencatat uang fisik yang diserahkan pelanggan (`cash_tendered`) dan menghitung uang kembalian (`change_amount = cash_tendered - amount`) secara deterministik di server. Uang kembalian tidak mempengaruhi total kas masuk; kas masuk tetap dihitung murni dari `amount`.
+- **Pengendalian Tanggal Pembayaran & Backdate:**
+  - Kasir mencatat pembayaran secara *real-time* mengikuti waktu server.
+  - Penyesuaian tanggal lampau (*backdate*) dibatasi hanya untuk peran Administrator dengan catatan tertulis wajib dan penandaan `is_backdated` pada log audit sistem. Tanggal tidak boleh mendahului tanggal masuk pesanan (`received_at`) atau melampaui waktu saat ini.
+- **Mekanisme Void & Anti-Silent Edit:**
+  - Pembatalan pembayaran (void) bersifat eksklusif untuk peran Administrator dengan alasan pembatalan tertulis yang memadai (minimal 10 karakter), tanpa pernah mengubah baris historis atau menghapus data pembayaran fisik.
+  - Model `Payment` wajib diproteksi dari pengubahan atribut finansial (`amount`, `method`, `recorded_by`, `payment_date`) serta pencegahan penghapusan baris (*hard delete protection*).
+  - Pembatalan transaksi pesanan wajib ditolak apabila masih terdapat pembayaran berstatus `valid` (seluruh pembayaran harus di-void terlebih dahulu).
 
 ### 7.4 Nota dan Dokumen Fisik
 - Sistem wajib menyediakan tampilan cetak nota kasir yang dioptimalkan menggunakan CSS `@media print`.

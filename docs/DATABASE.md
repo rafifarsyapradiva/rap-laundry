@@ -236,6 +236,8 @@ Unique: `(sequence_key, period)`.
 | `payment_date` | DATETIME | NN | | Tanggal uang diterima; dasar laporan kas masuk |
 | `amount` | DECIMAL(12,2) | NN | | Rupiah bulat, `> 0`, tidak boleh melebihi sisa tagihan |
 | `method` | VARCHAR(30) | NN | | `PaymentMethod` |
+| `cash_tendered` | DECIMAL(12,2) | N | NULL | Uang fisik diterima pelanggan (khusus `tunai`), `>= amount` |
+| `change_amount` | DECIMAL(12,2) | N | NULL | Uang kembalian ke pelanggan (`cash_tendered - amount`), `>= 0` |
 | `reference` | VARCHAR(100) | N | NULL | No. referensi transfer/QRIS |
 | `notes` | VARCHAR(255) | N | NULL | |
 | `status` | VARCHAR(30) | NN | `valid` | `PaymentRecordStatus` |
@@ -244,7 +246,7 @@ Unique: `(sequence_key, period)`.
 | `void_reason` | TEXT | N | NULL | Wajib saat void |
 | `created_at`, `updated_at` | TIMESTAMP | N | | |
 
-Nominal pembayaran **tidak pernah diedit**. Koreksi hanya melalui void lalu pencatatan pembayaran baru.
+Nominal pembayaran **tidak pernah diedit**. Koreksi hanya melalui void lalu pencatatan pembayaran baru. CHECK constraint database memastikan `cash_tendered >= amount` dan `change_amount >= 0` ketika diisi.
 
 ### 3.8 `order_status_histories`
 

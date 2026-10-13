@@ -45,7 +45,7 @@
                 <div style="display: flex; align-items: flex-start; gap: var(--space-2);">
                     <x-icon name="alert-triangle" size="18" style="flex-shrink: 0; margin-top: 2px;" />
                     <div>
-                        <strong style="font-size: var(--text-sm);">Gagal Memproses Transisi Status:</strong>
+                        <strong style="font-size: var(--text-sm);">Gagal Memproses Permintaan:</strong>
                         <ul style="margin: var(--space-1) 0 0 var(--space-4); font-size: var(--text-xs); padding: 0;">
                             @foreach ($errors->all() as $error)
                                 <li>{{ $error }}</li>
@@ -428,31 +428,73 @@
                                     <th>Petugas</th>
                                     <th style="text-align: right;">Nominal</th>
                                     <th style="text-align: center;">Status</th>
+                                    <th style="text-align: center; width: 80px;" class="no-print">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach ($order->payments as $payment)
-                                    <tr style="{{ $payment->isVoided() ? 'opacity: 0.5; text-decoration: line-through;' : '' }}">
-                                        <td style="font-size: var(--text-xs);">
-                                            {{ $payment->payment_date->format('d-m-Y H:i') }}
+                                    <tr style="{{ $payment->isVoided() ? 'opacity: 0.6; background-color: rgba(220, 38, 38, 0.03);' : '' }}">
+                                        <td style="font-size: var(--text-xs); vertical-align: top;">
+                                            <div>{{ $payment->payment_date->format('d-m-Y H:i') }}</div>
+                                            @if ($payment->isVoided())
+                                                <div style="font-size: 10px; color: var(--status-danger); margin-top: 2px;">
+                                                    Void: {{ $payment->voided_at?->format('d-m-Y H:i') }}
+                                                </div>
+                                            @endif
                                         </td>
-                                        <td>
-                                            {{ $payment->method->label() }}
+                                        <td style="vertical-align: top;">
+                                            <div style="font-weight: var(--font-semibold);">
+                                                {{ $payment->method->label() }}
+                                            </div>
+                                            @if ($payment->method === \App\Enums\PaymentMethod::Tunai && $payment->cash_tendered !== null)
+                                                <div style="font-size: 10px; color: var(--text-muted); margin-top: 2px;">
+                                                    Uang Diterima: {{ $payment->formatted_cash_tendered }}<br>
+                                                    Kembali: {{ $payment->formatted_change_amount }}
+                                                </div>
+                                            @endif
+                                            @if ($payment->notes)
+                                                <div style="font-size: 10px; color: var(--text-muted); font-style: italic; margin-top: 2px;">
+                                                    Catatan: {{ $payment->notes }}
+                                                </div>
+                                            @endif
                                         </td>
-                                        <td style="font-size: var(--text-xs); color: var(--text-muted);">
+                                        <td style="font-size: var(--text-xs); color: var(--text-muted); vertical-align: top;">
                                             {{ $payment->reference ?: '-' }}
                                         </td>
-                                        <td style="font-size: var(--text-xs);">
-                                            {{ $payment->recorder->name }}
+                                        <td style="font-size: var(--text-xs); vertical-align: top;">
+                                            <div>{{ $payment->recorder->name }}</div>
+                                            @if ($payment->isVoided() && $payment->voider)
+                                                <div style="font-size: 10px; color: var(--status-danger);">
+                                                    Dibatalkan: {{ $payment->voider->name }}
+                                                </div>
+                                            @endif
                                         </td>
-                                        <td style="text-align: right; font-weight: var(--font-bold); color: var(--status-success);">
-                                            Rp {{ number_format((float) $payment->amount, 0, ',', '.') }}
+                                        <td style="text-align: right; font-weight: var(--font-bold); color: {{ $payment->isValid() ? 'var(--status-success)' : 'var(--status-danger)' }}; vertical-align: top; {{ $payment->isVoided() ? 'text-decoration: line-through;' : '' }}">
+                                            {{ $payment->formatted_amount }}
                                         </td>
-                                        <td style="text-align: center;">
+                                        <td style="text-align: center; vertical-align: top;">
                                             @if ($payment->isValid())
                                                 <span class="badge badge-success" style="font-size: 10px;">Valid</span>
                                             @else
-                                                <span class="badge badge-danger" style="font-size: 10px;" title="{{ $payment->void_reason }}">Void</span>
+                                                <span class="badge badge-danger" style="font-size: 10px;" title="{{ $payment->void_reason }}">Dibatalkan</span>
+                                                <div style="font-size: 10px; color: var(--status-danger); text-align: left; margin-top: 4px; max-width: 180px; word-break: break-word;">
+                                                    <em>"{{ $payment->void_reason }}"</em>
+                                                </div>
+                                            @endif
+                                        </td>
+                                        <td style="text-align: center; vertical-align: top;" class="no-print">
+                                            @if ($payment->isValid())
+                                                @can('void', $payment)
+                                                    <button type="button" class="btn btn-danger btn-sm" style="font-size: 11px; padding: 2px 8px;"
+                                                            onclick="openVoidModal({{ $payment->id }}, '{{ $payment->formatted_amount }}')"
+                                                            title="Batalkan pembayaran ini (khusus Administrator)">
+                                                        Void
+                                                    </button>
+                                                @else
+                                                    <span style="color: var(--text-muted); font-size: 11px;">-</span>
+                                                @endcan
+                                            @else
+                                                <span style="color: var(--text-muted); font-size: 10px;">Voided</span>
                                             @endif
                                         </td>
                                     </tr>
@@ -465,6 +507,142 @@
                         Belum ada pembayaran yang dicatat untuk pesanan ini.
                     </div>
                 @endif
+            </div>
+
+            <!-- 4. Formulir Pencatatan Pembayaran Manual -->
+            @can('create', [\App\Models\Payment::class, $order])
+                <div class="glass-card no-print" style="padding: var(--space-5);">
+                    <div style="margin-bottom: var(--space-4); border-bottom: 1px solid var(--border-subtle); padding-bottom: var(--space-3);">
+                        <h2 style="font-size: var(--text-base); font-weight: var(--font-bold); color: var(--text-main); margin: 0; display: flex; align-items: center; gap: var(--space-2);">
+                            <x-icon name="plus" size="18" class="icon-primary" />
+                            <span>Pencatatan Pembayaran Masuk</span>
+                        </h2>
+                        <p style="color: var(--text-muted); font-size: var(--text-xs); margin-top: var(--space-1);">
+                            Sisa tagihan yang harus dibayar: <strong style="color: var(--status-danger); font-size: var(--text-sm);">Rp {{ number_format($order->remaining_balance, 0, ',', '.') }}</strong>.
+                        </p>
+                    </div>
+
+                    <form method="POST" action="{{ route('orders.payments.store', $order) }}" id="record-payment-form" data-prevent-double-submit>
+                        @csrf
+
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--space-4);">
+                            <!-- Nominal Pembayaran -->
+                            <div class="form-group">
+                                <label for="payment-amount" class="form-label required">
+                                    Nominal Pembayaran (Rp)
+                                </label>
+                                <input type="text" name="amount" id="payment-amount" class="form-control" required
+                                       placeholder="0" value="{{ old('amount', (int)$order->remaining_balance) }}"
+                                       oninput="formatRupiahInput(this); updateChangeCalculator();">
+                                <!-- Tombol Cepat Pelunasan & 50% -->
+                                <div style="display: flex; gap: var(--space-2); margin-top: var(--space-2);">
+                                    <button type="button" class="btn btn-secondary btn-sm" style="font-size: 11px; padding: 2px 8px;"
+                                            onclick="setPaymentAmount({{ (int)$order->remaining_balance }})">
+                                        Lunasi (Rp {{ number_format($order->remaining_balance, 0, ',', '.') }})
+                                    </button>
+                                    @if ($order->remaining_balance > 1000)
+                                        <button type="button" class="btn btn-secondary btn-sm" style="font-size: 11px; padding: 2px 8px;"
+                                                onclick="setPaymentAmount({{ (int)round($order->remaining_balance / 2) }})">
+                                            50% (Rp {{ number_format(round($order->remaining_balance / 2), 0, ',', '.') }})
+                                        </button>
+                                    @endif
+                                </div>
+                            </div>
+
+                            <!-- Metode Pembayaran -->
+                            <div class="form-group">
+                                <label for="payment-method" class="form-label required">
+                                    Metode Pembayaran
+                                </label>
+                                <select name="method" id="payment-method" class="form-control" required onchange="handlePaymentMethodChange(this.value)">
+                                    @foreach ($paymentMethods ?? \App\Enums\PaymentMethod::cases() as $m)
+                                        <option value="{{ $m->value }}" {{ old('method', 'tunai') === $m->value ? 'selected' : '' }}>
+                                            {{ $m->label() }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <!-- No Referensi Opsional -->
+                            <div class="form-group">
+                                <label for="payment-reference" class="form-label">
+                                    Nomor Referensi (Opsional)
+                                </label>
+                                <input type="text" name="reference" id="payment-reference" class="form-control"
+                                       placeholder="Contoh: TF-829103, QRIS-1290" value="{{ old('reference') }}">
+                            </div>
+
+                            <!-- Tanggal Pembayaran (Khusus Administrator) -->
+                            @if (auth()->user()->isAdmin())
+                                <div class="form-group">
+                                    <label for="payment-date" class="form-label">
+                                        Tanggal Pembayaran (Admin Backdate)
+                                    </label>
+                                    <input type="datetime-local" name="payment_date" id="payment-date" class="form-control"
+                                           value="{{ old('payment_date', now()->format('Y-m-d\TH:i')) }}"
+                                           max="{{ now()->format('Y-m-d\TH:i') }}">
+                                    <small style="font-size: 10px; color: var(--text-muted); display: block; margin-top: 2px;">
+                                        Diisi lampau hanya jika rekonsiliasi transfer bank.
+                                    </small>
+                                </div>
+                            @endif
+                        </div>
+
+                        <!-- Panel Kalkulator Kembalian Tunai -->
+                        <div id="cash-calculator-panel" style="background-color: var(--primary-subtle); border-radius: var(--radius-md); padding: var(--space-4); margin-top: var(--space-4); border: 1px solid var(--border-subtle); display: block;">
+                            <div style="font-size: var(--text-xs); font-weight: var(--font-bold); color: var(--primary-dark); text-transform: uppercase; margin-bottom: var(--space-2);">
+                                Kalkulator Uang Tunai & Kembalian
+                            </div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); align-items: start;">
+                                <div class="form-group" style="margin-bottom: 0;">
+                                    <label for="payment-cash-tendered" class="form-label" style="font-size: 11px;">
+                                        Uang Fisik Diterima Kasir (Rp)
+                                    </label>
+                                    <input type="text" name="cash_tendered" id="payment-cash-tendered" class="form-control"
+                                           placeholder="Contoh: 50.000, 100.000" value="{{ old('cash_tendered') }}"
+                                           oninput="formatRupiahInput(this); updateChangeCalculator();">
+                                </div>
+                                <div>
+                                    <div style="font-size: 11px; font-weight: var(--font-semibold); color: var(--text-muted); margin-bottom: 4px;">
+                                        Uang Kembalian Pelanggan:
+                                    </div>
+                                    <div id="payment-change-display" style="font-size: var(--text-lg); font-weight: var(--font-extrabold); color: var(--status-success);">
+                                        Rp 0
+                                    </div>
+                                    <small id="payment-change-note" style="font-size: 10px; color: var(--text-muted); display: block; margin-top: 2px;">
+                                        Uang kembalian dihitung otomatis.
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Catatan Pembayaran -->
+                        <div class="form-group" style="margin-top: var(--space-4);">
+                            <label for="payment-notes" class="form-label" id="payment-notes-label">
+                                Catatan / Keterangan Pembayaran (Opsional)
+                            </label>
+                            <textarea name="notes" id="payment-notes" class="form-control" rows="2"
+                                      placeholder="Catatan tambahan (wajib jika metode Lainnya atau rekonsiliasi backdate)...">{{ old('notes') }}</textarea>
+                        </div>
+
+                        <!-- Konfirmasi Penerimaan Dana -->
+                        <div style="margin-top: var(--space-4); background: rgba(37, 99, 235, 0.05); padding: var(--space-3) var(--space-4); border-radius: var(--radius-sm); border-left: 3px solid var(--primary);">
+                            <label style="display: flex; align-items: center; gap: var(--space-2); cursor: pointer; font-size: var(--text-xs); color: var(--text-main); font-weight: var(--font-semibold); margin: 0;">
+                                <input type="checkbox" name="confirm_received" value="1" required style="width: 16px; height: 16px; accent-color: var(--primary);">
+                                <span>Saya mengonfirmasi bahwa dana fisik tunai / mutasi transfer / QRIS telah diterima dan diverifikasi sah.</span>
+                            </label>
+                        </div>
+
+                        <!-- Tombol Aksi Simpan -->
+                        <div style="display: flex; justify-content: flex-end; margin-top: var(--space-4);">
+                            <button type="submit" class="btn btn-primary" id="btn-submit-payment">
+                                <x-icon name="check" size="16" />
+                                <span>Simpan Catatan Pembayaran</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            @endcan
             </div>
         </div>
 
@@ -501,22 +679,31 @@
 
                     <div style="border-top: 1px dashed var(--border-subtle); margin: var(--space-2) 0;"></div>
 
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <span style="font-weight: var(--font-bold); color: var(--text-main);">Total Tagihan:</span>
-                        <span style="font-size: var(--text-xl); font-weight: var(--font-extrabold); color: var(--primary);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(37, 99, 235, 0.05); padding: var(--space-2) var(--space-3); border-radius: var(--radius-sm);">
+                        <div>
+                            <span style="font-weight: var(--font-bold); color: var(--text-main); display: block;">Nilai Transaksi</span>
+                            <span style="font-size: 10px; color: var(--text-muted);">(Total Tagihan Pesanan)</span>
+                        </div>
+                        <span style="font-size: var(--text-lg); font-weight: var(--font-extrabold); color: var(--primary);">
                             Rp {{ number_format((float) $order->total_amount, 0, ',', '.') }}
                         </span>
                     </div>
 
-                    <div style="display: flex; justify-content: space-between;">
-                        <span style="color: var(--text-muted);">Total Dibayar (Valid):</span>
-                        <span style="font-weight: var(--font-bold); color: var(--status-success);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(22, 163, 74, 0.05); padding: var(--space-2) var(--space-3); border-radius: var(--radius-sm);">
+                        <div>
+                            <span style="font-weight: var(--font-bold); color: var(--status-success); display: block;">Uang Diterima</span>
+                            <span style="font-size: 10px; color: var(--text-muted);">(Pembayaran Valid Tercatat)</span>
+                        </div>
+                        <span style="font-weight: var(--font-extrabold); font-size: var(--text-base); color: var(--status-success);">
                             Rp {{ number_format($order->total_paid, 0, ',', '.') }}
                         </span>
                     </div>
 
-                    <div style="border-top: 2px solid var(--border-glass); padding-top: var(--space-3); margin-top: var(--space-2); display: flex; justify-content: space-between; align-items: center;">
-                        <span style="font-weight: var(--font-bold); color: var(--text-main);">Sisa Tagihan:</span>
+                    <div style="border-top: 2px solid var(--border-glass); padding-top: var(--space-3); margin-top: var(--space-2); display: flex; justify-content: space-between; align-items: center; background: {{ $order->remaining_balance <= 0 ? 'rgba(22, 163, 74, 0.08)' : 'rgba(220, 38, 38, 0.05)' }}; padding: var(--space-3); border-radius: var(--radius-sm);">
+                        <div>
+                            <span style="font-weight: var(--font-bold); color: var(--text-main); display: block;">Saldo Tagihan</span>
+                            <span style="font-size: 10px; color: var(--text-muted);">(Sisa Piutang)</span>
+                        </div>
                         @if ($order->remaining_balance <= 0)
                             <span class="badge badge-success" style="font-size: var(--text-sm); font-weight: var(--font-bold);">
                                 Lunas (Rp 0)
@@ -764,7 +951,139 @@
 </div>
 @endcan
 
+<!-- Modal Konfirmasi Void Pembayaran -->
+<div class="modal-backdrop" id="void-modal" role="dialog" aria-modal="true" style="display: none;">
+    <div class="modal-dialog">
+        <div class="modal-header">
+            <div class="modal-icon-wrap modal-icon-danger">
+                <x-icon name="alert-triangle" size="22" />
+            </div>
+            <div>
+                <h3 class="modal-title">Batalkan (Void) Pembayaran</h3>
+                <p class="modal-desc" id="void-modal-desc">Pembatalan pembayaran akan mengembalikan saldo tagihan pesanan.</p>
+            </div>
+        </div>
+
+        <form method="POST" action="" id="void-payment-form" data-prevent-double-submit>
+            @csrf
+            @method('PATCH')
+
+            <div style="padding: 0 var(--space-6) var(--space-4);">
+                <div class="alert alert-warning" style="font-size: var(--text-xs); margin-bottom: var(--space-4);">
+                    <div style="display: flex; align-items: flex-start; gap: var(--space-2);">
+                        <x-icon name="alert-triangle" size="16" style="flex-shrink: 0; margin-top: 1px;" />
+                        <div>
+                            <strong>Peringatan Jejak Audit:</strong> Riwayat pembayaran tidak dihapus fisik, melainkan ditandai "Void" dengan nama Administrator dan alasan pembatalan. Sisa tagihan akan disesuaikan kembali.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="void-reason-input" class="form-label required">
+                        Alasan Pembatalan (Wajib Diisi, Minimal 10 Karakter)
+                    </label>
+                    <textarea name="reason" id="void-reason-input" class="form-control" rows="3" required
+                              placeholder="Contoh: Kesalahan input kasir nominal Rp50.000 menjadi Rp500.000, bukti transfer tidak masuk..."></textarea>
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeVoidModal()">
+                    Batal
+                </button>
+                <button type="submit" class="btn btn-danger">
+                    Ya, Batalkan Pembayaran (Void)
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
+function openVoidModal(paymentId, amountFormatted) {
+    const form = document.getElementById('void-payment-form');
+    if (form) {
+        form.action = '/payments/' + paymentId + '/void';
+    }
+    const desc = document.getElementById('void-modal-desc');
+    if (desc) {
+        desc.textContent = 'Konfirmasi pembatalan pembayaran #' + paymentId + ' sebesar ' + amountFormatted + '.';
+    }
+    const modal = document.getElementById('void-modal');
+    if (modal) modal.style.display = 'flex';
+}
+
+function closeVoidModal() {
+    const modal = document.getElementById('void-modal');
+    if (modal) modal.style.display = 'none';
+}
+
+function setPaymentAmount(val) {
+    const el = document.getElementById('payment-amount');
+    if (el) {
+        el.value = Number(val).toLocaleString('id-ID');
+        updateChangeCalculator();
+    }
+}
+
+function handlePaymentMethodChange(val) {
+    const panel = document.getElementById('cash-calculator-panel');
+    const notesLabel = document.getElementById('payment-notes-label');
+
+    if (panel) {
+        panel.style.display = (val === 'tunai') ? 'block' : 'none';
+    }
+
+    if (notesLabel) {
+        if (val === 'lainnya') {
+            notesLabel.textContent = 'Catatan / Keterangan Pembayaran (Wajib Diisi)';
+            notesLabel.classList.add('required');
+        } else {
+            notesLabel.textContent = 'Catatan / Keterangan Pembayaran (Opsional)';
+            notesLabel.classList.remove('required');
+        }
+    }
+    updateChangeCalculator();
+}
+
+function updateChangeCalculator() {
+    const amountEl = document.getElementById('payment-amount');
+    const tenderedEl = document.getElementById('payment-cash-tendered');
+    const changeDisplay = document.getElementById('payment-change-display');
+    const changeNote = document.getElementById('payment-change-note');
+
+    if (!amountEl || !tenderedEl || !changeDisplay) return;
+
+    const amount = parseInt(amountEl.value.replace(/[^0-9]/g, '')) || 0;
+    const tendered = parseInt(tenderedEl.value.replace(/[^0-9]/g, '')) || 0;
+
+    if (tendered > 0) {
+        const diff = tendered - amount;
+        if (diff >= 0) {
+            changeDisplay.textContent = 'Rp ' + diff.toLocaleString('id-ID');
+            changeDisplay.style.color = 'var(--status-success)';
+            if (changeNote) changeNote.textContent = 'Uang kembalian yang harus diserahkan ke pelanggan.';
+        } else {
+            changeDisplay.textContent = 'Kurang Rp ' + Math.abs(diff).toLocaleString('id-ID');
+            changeDisplay.style.color = 'var(--status-danger)';
+            if (changeNote) changeNote.textContent = 'Uang tunai fisik diterima kurang dari nominal tagihan.';
+        }
+    } else {
+        changeDisplay.textContent = 'Rp 0';
+        changeDisplay.style.color = 'var(--status-success)';
+        if (changeNote) changeNote.textContent = 'Uang kembalian dihitung otomatis.';
+    }
+}
+
+function formatRupiahInput(input) {
+    let value = input.value.replace(/[^0-9]/g, '');
+    if (value) {
+        input.value = Number(value).toLocaleString('id-ID');
+    } else {
+        input.value = '';
+    }
+}
+
 function openCorrectionModal() {
     const modal = document.getElementById('correction-modal');
     if (modal) modal.style.display = 'flex';
@@ -776,7 +1095,6 @@ function closeCorrectionModal() {
 }
 
 function openStatusModal(statusValue, statusLabel, remainingBalance) {
-
     document.getElementById('modal-target-status').value = statusValue;
     document.getElementById('status-modal-title').textContent = 'Lanjut ke: ' + statusLabel;
     document.getElementById('status-modal-desc').textContent = 'Perbarui status pesanan {{ $order->order_number }} menjadi ' + statusLabel + '.';

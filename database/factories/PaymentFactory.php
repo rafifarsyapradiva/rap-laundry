@@ -24,6 +24,8 @@ class PaymentFactory extends Factory
             'payment_date' => now(),
             'amount' => '24000.00',
             'method' => PaymentMethod::Tunai,
+            'cash_tendered' => null,
+            'change_amount' => null,
             'reference' => null,
             'notes' => null,
             'status' => PaymentRecordStatus::Valid,
@@ -40,6 +42,16 @@ class PaymentFactory extends Factory
             'voided_by' => User::factory(),
             'voided_at' => now(),
             'void_reason' => 'Koreksi kesalahan input kasir',
+        ]);
+    }
+
+    public function tunaiWithChange(string $amount = '24000.00', string $tendered = '30000.00'): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'method' => PaymentMethod::Tunai,
+            'amount' => $amount,
+            'cash_tendered' => $tendered,
+            'change_amount' => number_format((float) $tendered - (float) $amount, 2, '.', ''),
         ]);
     }
 }
