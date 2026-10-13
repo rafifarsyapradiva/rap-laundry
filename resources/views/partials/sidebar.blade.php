@@ -39,7 +39,7 @@
                     </a>
                 </li>
                 <li>
-                    <a href="{{ Route::has('payments.index') ? route('payments.index') : '#' }}" class="nav-link {{ request()->routeIs('payments*') ? 'active' : '' }}">
+                    <a href="{{ route('payments.index') }}" class="nav-link {{ request()->routeIs('payments*') ? 'active' : '' }}">
                         <x-icon name="payments" size="18" />
                         <span>Pembayaran</span>
                     </a>

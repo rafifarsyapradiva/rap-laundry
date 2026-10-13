@@ -47,6 +47,7 @@ Route::middleware('auth')->group(function () {
         Route::patch('/orders/{order}/correct-status', [OrderController::class, 'correctStatus'])->name('orders.correct-status');
 
         // Modul Transaksi Pembayaran Manual
+        Route::get('/payments', [PaymentController::class, 'index'])->name('payments.index');
         Route::post('/orders/{order}/payments', [PaymentController::class, 'store'])->name('orders.payments.store');
         Route::patch('/payments/{payment}/void', [PaymentController::class, 'void'])->name('payments.void');
 
