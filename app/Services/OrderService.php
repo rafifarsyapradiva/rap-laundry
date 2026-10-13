@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Enums\ActivityAction;
 use App\Enums\LaundryStatus;
 use App\Enums\PaymentStatus;
+use App\Exceptions\InvalidStatusTransitionException;
 use App\Models\ActivityLog;
 use App\Models\BusinessSetting;
 use App\Models\Customer;
@@ -147,4 +148,183 @@ class OrderService
             return $order->load(['customer', 'items', 'creator', 'statusHistories']);
         });
     }
+
+    /**
+     * Perbarui status cucian pesanan dengan validasi transisi, pencatatan histori, dan jejak audit.
+     *
+     * @param Order $order Pesanan yang akan diubah statusnya
+     * @param LaundryStatus $newStatus Status cucian target
+     * @param User $operator Petugas yang melakukan pengubahan status
+     * @param string|null $note Catatan operasional opsional
+     * @param string|null $cancellationReason Alasan pembatalan (wajib jika status dibatalkan)
+     * @return Order
+     * @throws InvalidStatusTransitionException Jika transisi tidak diizinkan oleh aturan state machine
+     * @throws DomainException Jika pesanan sudah berada pada status terminal atau alasan pembatalan kosong
+     */
+    public function updateLaundryStatus(
+        Order $order,
+        LaundryStatus $newStatus,
+        User $operator,
+        ?string $note = null,
+        ?string $cancellationReason = null
+    ): Order {
+        if ($order->laundry_status === $newStatus) {
+            return $order;
+        }
+
+        if ($order->isTerminal()) {
+            throw new DomainException(
+                "Pesanan {$order->order_number} sudah berada pada status '{$order->laundry_status->label()}' dan tidak dapat diubah lagi."
+            );
+        }
+
+        if (! $order->canTransitionTo($newStatus)) {
+            throw new InvalidStatusTransitionException(
+                "Transisi status pesanan dari '{$order->laundry_status->label()}' ke '{$newStatus->label()}' tidak diizinkan."
+            );
+        }
+
+        if ($newStatus === LaundryStatus::Dibatalkan && empty(trim((string) $cancellationReason))) {
+            throw new DomainException('Alasan pembatalan pesanan wajib diisi.');
+        }
+
+        return DB::transaction(function () use ($order, $newStatus, $operator, $note, $cancellationReason): Order {
+            $oldStatus = $order->laundry_status;
+
+            $updates = [
+                'laundry_status' => $newStatus->value,
+            ];
+
+            if ($newStatus === LaundryStatus::Selesai && ! $order->completed_at) {
+                $updates['completed_at'] = now();
+            }
+
+            if ($newStatus === LaundryStatus::Dibatalkan) {
+                $updates['cancelled_at'] = now();
+                $updates['cancelled_by'] = $operator->id;
+                $updates['cancellation_reason'] = trim((string) $cancellationReason);
+            }
+
+            $order->update($updates);
+
+            // Simpan riwayat perubahan status
+            $order->statusHistories()->create([
+                'from_status' => $oldStatus->value,
+                'to_status' => $newStatus->value,
+                'changed_by' => $operator->id,
+                'note' => ! empty($note) ? trim((string) $note) : null,
+            ]);
+
+            // Catat log aktivitas sistem
+            $isCancelled = ($newStatus === LaundryStatus::Dibatalkan);
+            ActivityLog::create([
+                'user_id' => $operator->id,
+                'action' => $isCancelled ? ActivityAction::OrderCancelled : ActivityAction::OrderStatusChanged,
+                'subject_type' => Order::class,
+                'subject_id' => $order->id,
+                'description' => $isCancelled
+                    ? "Pesanan {$order->order_number} dibatalkan oleh {$operator->name}. Alasan: {$cancellationReason}"
+                    : "Status cucian pesanan {$order->order_number} diperbarui dari {$oldStatus->label()} menjadi {$newStatus->label()}.",
+                'metadata' => [
+                    'order_number' => $order->order_number,
+                    'from_status' => $oldStatus->value,
+                    'to_status' => $newStatus->value,
+                    'actor_username' => $operator->username,
+                    'note' => $note,
+                    'cancellation_reason' => $cancellationReason,
+                ],
+            ]);
+
+            return $order->fresh(['customer', 'items', 'creator', 'canceller', 'statusHistories.changer']);
+        });
+    }
+
+    /**
+     * Lakukan koreksi status cucian secara terkontrol oleh Administrator dengan alasan wajib.
+     *
+     * @param Order $order Pesanan yang statusnya akan dikoreksi
+     * @param LaundryStatus $newStatus Status cucian target
+     * @param User $admin Pengguna dengan wewenang Admin
+     * @param string $reason Alasan koreksi status untuk jejak audit
+     * @return Order
+     * @throws DomainException Jika operator bukan admin, pesanan dibatalkan, atau target status tidak sah
+     */
+    public function correctLaundryStatus(
+        Order $order,
+        LaundryStatus $newStatus,
+        User $admin,
+        string $reason
+    ): Order {
+        if (! $admin->isAdmin()) {
+            throw new DomainException('Hanya Administrator/Pemilik yang memiliki wewenang untuk melakukan koreksi status cucian.');
+        }
+
+        if ($order->laundry_status === LaundryStatus::Dibatalkan) {
+            throw new DomainException('Pesanan yang telah dibatalkan tidak dapat dikoreksi kembali.');
+        }
+
+        if ($order->laundry_status === $newStatus) {
+            throw new DomainException('Status target koreksi tidak boleh sama dengan status saat ini.');
+        }
+
+        if ($newStatus === LaundryStatus::Dibatalkan) {
+            throw new DomainException('Untuk membatalkan pesanan, gunakan alur pembatalan resmi.');
+        }
+
+        $trimmedReason = trim($reason);
+        if (strlen($trimmedReason) < 5) {
+            throw new DomainException('Alasan koreksi status wajib diisi minimal 5 karakter.');
+        }
+
+        return DB::transaction(function () use ($order, $newStatus, $admin, $trimmedReason): Order {
+            $oldStatus = $order->laundry_status;
+
+            $updates = [
+                'laundry_status' => $newStatus->value,
+            ];
+
+            // Jika koreksi mundur dari status Selesai, reset completed_at
+            if ($oldStatus === LaundryStatus::Selesai && $newStatus !== LaundryStatus::Selesai) {
+                $updates['completed_at'] = null;
+            }
+
+            // Jika koreksi ke Selesai, isi completed_at jika belum ada
+            if ($newStatus === LaundryStatus::Selesai && ! $order->completed_at) {
+                $updates['completed_at'] = now();
+            }
+
+            $order->update($updates);
+
+            $formattedNote = "[KOREKSI] {$trimmedReason}";
+
+            // Simpan riwayat perubahan status dengan catatan koreksi
+            $order->statusHistories()->create([
+                'from_status' => $oldStatus->value,
+                'to_status' => $newStatus->value,
+                'changed_by' => $admin->id,
+                'note' => $formattedNote,
+            ]);
+
+            // Catat log aktivitas audit sistem
+            ActivityLog::create([
+                'user_id' => $admin->id,
+                'action' => ActivityAction::OrderStatusChanged,
+                'subject_type' => Order::class,
+                'subject_id' => $order->id,
+                'description' => "Status cucian pesanan {$order->order_number} dikoreksi oleh Admin {$admin->name} dari {$oldStatus->label()} menjadi {$newStatus->label()}. Alasan: {$trimmedReason}",
+                'metadata' => [
+                    'order_number' => $order->order_number,
+                    'from_status' => $oldStatus->value,
+                    'to_status' => $newStatus->value,
+                    'is_correction' => true,
+                    'correction_reason' => $trimmedReason,
+                    'actor_username' => $admin->username,
+                ],
+            ]);
+
+            return $order->fresh(['customer', 'items', 'creator', 'canceller', 'statusHistories.changer']);
+        });
+    }
 }
+
+

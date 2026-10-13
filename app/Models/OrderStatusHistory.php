@@ -38,4 +38,29 @@ class OrderStatusHistory extends Model
     {
         return $this->belongsTo(User::class, 'changed_by');
     }
+
+    /**
+     * Periksa apakah riwayat ini merupakan entri awal saat pesanan pertama kali dibuat.
+     */
+    public function getIsInitialAttribute(): bool
+    {
+        return $this->from_status === null;
+    }
+
+    /**
+     * Periksa apakah riwayat ini merupakan tindakan koreksi status oleh Administrator.
+     */
+    public function getIsCorrectionAttribute(): bool
+    {
+        return str_starts_with((string) $this->note, '[KOREKSI]');
+    }
+
+    /**
+     * Format tanggal dan jam kejadian dalam format Indonesia (dd-mm-yyyy HH:ii WIB).
+     */
+    public function getFormattedCreatedAtAttribute(): string
+    {
+        return $this->created_at ? $this->created_at->format('d-m-Y H:i') . ' WIB' : '-';
+    }
 }
+

@@ -38,6 +38,29 @@
         </div>
     @endif
 
+    <!-- Alert Notifikasi Error Validasi / Bisnis Transisi -->
+    @if ($errors->any())
+        <div class="alert alert-danger no-print" role="alert">
+            <div style="display: flex; align-items: flex-start; justify-content: space-between; width: 100%;">
+                <div style="display: flex; align-items: flex-start; gap: var(--space-2);">
+                    <x-icon name="alert-triangle" size="18" style="flex-shrink: 0; margin-top: 2px;" />
+                    <div>
+                        <strong style="font-size: var(--text-sm);">Gagal Memproses Transisi Status:</strong>
+                        <ul style="margin: var(--space-1) 0 0 var(--space-4); font-size: var(--text-xs); padding: 0;">
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                </div>
+                <button type="button" onclick="window.LaundryDesk.dismissAlert(this)" style="background: none; border: none; cursor: pointer; color: inherit;">
+                    &times;
+                </button>
+            </div>
+        </div>
+    @endif
+
+
     <!-- Banner Khusus Jika Pesanan Dibatalkan -->
     @if ($order->is_cancelled)
         <div class="alert alert-danger" role="alert">
@@ -119,6 +142,153 @@
             </div>
         </div>
     </div>
+
+    <!-- ===================================================================
+         PANEL KONTROL STATUS OPERASIONAL CUCIAN & AKSI TRANSISI
+         =================================================================== -->
+    <div class="glass-card no-print" style="padding: var(--space-6);">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: var(--space-4); border-bottom: 1px solid var(--border-subtle); padding-bottom: var(--space-4); margin-bottom: var(--space-5);">
+            <div>
+                <h2 style="font-size: var(--text-lg); font-weight: var(--font-bold); color: var(--text-main); margin: 0; display: flex; align-items: center; gap: var(--space-2);">
+                    <x-icon name="dashboard" size="20" class="icon-primary" />
+                    <span>Alur Status Pengerjaan Cucian</span>
+                </h2>
+                <p style="font-size: var(--text-xs); color: var(--text-muted); margin: var(--space-1) 0 0 0;">
+                    @if ($order->is_cancelled)
+                        Pesanan ini telah dibatalkan dan proses operasional dihentikan.
+                    @elseif ($order->laundry_status === \App\Enums\LaundryStatus::Selesai)
+                        Pesanan telah selesai dan cucian telah diserahkan kepada pelanggan.
+                    @else
+                        Status saat ini: <strong>{{ $order->laundry_status->label() }}</strong>. Perbarui status pengerjaan sesuai alur operasional.
+                    @endif
+                </p>
+            </div>
+
+            <!-- Tombol Aksi Transisi -->
+            @if (! $order->isTerminal())
+                <div style="display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap;">
+                    @php
+                        $nextStatus = $order->getNextRecommendedStatus();
+                        $otherTransitions = array_filter(
+                            $order->getAvailableTransitions(),
+                            fn($st) => $st !== $nextStatus && $st !== \App\Enums\LaundryStatus::Dibatalkan
+                        );
+                    @endphp
+
+                    @if ($nextStatus)
+                        <button type="button" class="btn btn-primary" onclick="openStatusModal('{{ $nextStatus->value }}', '{{ $nextStatus->label() }}', {{ $order->remaining_balance }})" title="Perbarui status langsung ke tahap berikutnya">
+                            <x-icon name="check" size="16" />
+                            <span>Lanjut ke: {{ $nextStatus->label() }}</span>
+                        </button>
+                    @endif
+
+                    @if (! empty($otherTransitions))
+                        <div style="position: relative; display: inline-block;">
+                            <button type="button" class="btn btn-secondary" onclick="toggleStatusDropdown(event)" title="Pilih transisi status alternatif">
+                                <span>Pilihan Lainnya</span>
+                                <span style="font-size: 10px; margin-left: 4px;">▼</span>
+                            </button>
+                            <div id="status-alt-dropdown" class="glass-card" style="display: none; position: absolute; right: 0; top: calc(100% + 6px); z-index: 50; min-width: 200px; padding: var(--space-2); box-shadow: 0 10px 25px -5px rgba(0,0,0,0.15); border: 1px solid var(--border-glass);">
+                                <div style="font-size: 11px; font-weight: var(--font-bold); color: var(--text-muted); padding: var(--space-1) var(--space-2); text-transform: uppercase;">Lompat ke status:</div>
+                                @foreach ($otherTransitions as $transition)
+                                    <button type="button" class="btn btn-secondary btn-sm" style="width: 100%; text-align: left; justify-content: flex-start; margin-bottom: 4px; font-size: 12px;" onclick="openStatusModal('{{ $transition->value }}', '{{ $transition->label() }}', {{ $order->remaining_balance }}); closeStatusDropdown();">
+                                        <x-badge-status :status="$transition" style="font-size: 11px;" />
+                                    </button>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
+
+                    <button type="button" class="btn btn-danger btn-sm" onclick="openCancelModal()" title="Batalkan pesanan ini">
+                        <x-icon name="alert-triangle" size="14" />
+                        <span>Batalkan</span>
+                    </button>
+                </div>
+            @endif
+        </div>
+
+        <!-- Stepper Visualisasi Alur Status -->
+        @php
+            $stages = [
+                ['status' => \App\Enums\LaundryStatus::Diterima, 'required' => true, 'step' => 1],
+                ['status' => \App\Enums\LaundryStatus::MenungguProses, 'required' => true, 'step' => 2],
+                ['status' => \App\Enums\LaundryStatus::Dicuci, 'required' => $order->requiresWashing(), 'step' => 3],
+                ['status' => \App\Enums\LaundryStatus::Dikeringkan, 'required' => $order->requiresWashing(), 'step' => 4],
+                ['status' => \App\Enums\LaundryStatus::Disetrika, 'required' => $order->requiresIroning(), 'step' => 5],
+                ['status' => \App\Enums\LaundryStatus::SiapDiambil, 'required' => true, 'step' => 6],
+                ['status' => \App\Enums\LaundryStatus::Selesai, 'required' => true, 'step' => 7],
+            ];
+
+            $orderRank = [
+                'diterima' => 1,
+                'menunggu_proses' => 2,
+                'dicuci' => 3,
+                'dikeringkan' => 4,
+                'disetrika' => 5,
+                'siap_diambil' => 6,
+                'selesai' => 7,
+            ];
+
+            $currentRank = $orderRank[$order->laundry_status->value] ?? 0;
+        @endphp
+
+        <div class="status-pipeline-wrap" style="display: flex; align-items: flex-start; justify-content: space-between; position: relative; overflow-x: auto; padding: var(--space-3) var(--space-2); -webkit-overflow-scrolling: touch; gap: var(--space-2);">
+            @foreach ($stages as $index => $stage)
+                @php
+                    $isCurrent = ($order->laundry_status === $stage['status']);
+                    $isPast = ($currentRank > $stage['step']) && ! $order->is_cancelled;
+                    $isBypassed = (! $stage['required']);
+                @endphp
+
+                <div class="pipeline-step {{ $isCurrent ? 'is-current' : '' }} {{ $isPast ? 'is-past' : '' }} {{ $isBypassed ? 'is-bypassed' : '' }}" style="display: flex; flex-direction: column; align-items: center; text-align: center; min-width: 95px; flex: 1; position: relative; z-index: 1;">
+                    <!-- Circle Indicator -->
+                    <div style="width: 36px; height: 36px; border-radius: var(--radius-full); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: var(--font-bold); transition: all 0.2s ease;
+                        @if ($order->is_cancelled)
+                            background-color: var(--status-danger-bg); color: var(--status-danger); border: 2px solid var(--status-danger);
+                        @elseif ($isCurrent)
+                            background-color: var(--primary); color: #ffffff; border: 3px solid var(--primary-light); box-shadow: 0 0 0 4px var(--primary-subtle);
+                        @elseif ($isPast)
+                            background-color: var(--primary-subtle); color: var(--primary); border: 2px solid var(--primary);
+                        @elseif ($isBypassed)
+                            background-color: rgba(0,0,0,0.03); color: var(--text-muted); border: 2px dashed var(--border-subtle); opacity: 0.6;
+                        @else
+                            background-color: rgba(255,255,255,0.7); color: var(--text-muted); border: 2px solid var(--border-subtle);
+                        @endif
+                    ">
+                        @if ($isPast)
+                            <x-icon name="check" size="16" />
+                        @elseif ($isBypassed)
+                            &ndash;
+                        @else
+                            {{ $stage['step'] }}
+                        @endif
+                    </div>
+
+                    <!-- Label Status -->
+                    <div style="margin-top: var(--space-2); font-size: var(--text-xs); font-weight: {{ $isCurrent ? 'var(--font-bold)' : 'var(--font-semibold)' }}; color: {{ $isCurrent ? 'var(--primary)' : ($isPast ? 'var(--text-main)' : 'var(--text-muted)') }};">
+                        {{ $stage['status']->label() }}
+                    </div>
+
+                    <!-- Keterangan Bypass / Khusus -->
+                    @if ($isBypassed)
+                        <div style="font-size: 10px; color: var(--text-muted); margin-top: 2px; font-style: italic;">
+                            (Dilewati)
+                        </div>
+                    @elseif ($isCurrent)
+                        <div style="font-size: 10px; color: var(--primary); margin-top: 2px; font-weight: var(--font-bold);">
+                            &bull; Saat Ini
+                        </div>
+                    @endif
+                </div>
+
+                @if ($index < count($stages) - 1)
+                    <!-- Garis Penghubung Pipeline -->
+                    <div style="flex: 1; height: 3px; background-color: {{ ($currentRank > $stage['step'] && ! $order->is_cancelled) ? 'var(--primary)' : 'var(--border-subtle)' }}; min-width: 16px; margin-top: 18px;"></div>
+                @endif
+            @endforeach
+        </div>
+    </div>
+
 
     <!-- ===================================================================
          KONTEN DUA KOLOM: DATA LAYANAN & FINANSIAL
@@ -362,26 +532,59 @@
 
             <!-- 2. Timeline Kronologis Riwayat Status Cucian -->
             <div class="glass-card" style="padding: var(--space-6);">
-                <h3 style="font-size: var(--text-base); font-weight: var(--font-bold); color: var(--text-main); margin-bottom: var(--space-4); border-bottom: 1px solid var(--border-subtle); padding-bottom: var(--space-2);">
-                    Riwayat Alur Status
-                </h3>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-4); border-bottom: 1px solid var(--border-subtle); padding-bottom: var(--space-2); flex-wrap: wrap; gap: var(--space-2);">
+                    <h3 style="font-size: var(--text-base); font-weight: var(--font-bold); color: var(--text-main); margin: 0;">
+                        Riwayat Alur Status
+                    </h3>
+                    @can('correctStatus', $order)
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="openCorrectionModal()" title="Koreksi status cucian khusus Administrator" style="font-size: 11px;">
+                            <x-icon name="edit" size="12" />
+                            <span>Koreksi Status (Admin)</span>
+                        </button>
+                    @endcan
+                </div>
 
                 <div style="display: flex; flex-direction: column; gap: var(--space-4); position: relative;">
                     @foreach ($order->statusHistories as $hist)
                         <div style="display: flex; gap: var(--space-3); align-items: flex-start;">
-                            <div style="width: 8px; height: 8px; border-radius: var(--radius-full); background-color: var(--primary); margin-top: 6px; flex-shrink: 0;"></div>
-                            <div style="display: flex; flex-direction: column; gap: 2px; width: 100%;">
+                            <!-- Simpul Titik Indikator -->
+                            <div style="width: 10px; height: 10px; border-radius: var(--radius-full); background-color: {{ $hist->is_correction ? 'var(--status-warning)' : 'var(--primary)' }}; margin-top: 5px; flex-shrink: 0; box-shadow: 0 0 0 3px {{ $hist->is_correction ? 'rgba(217, 119, 6, 0.15)' : 'var(--primary-subtle)' }};"></div>
+
+                            <div style="display: flex; flex-direction: column; gap: 4px; width: 100%;">
+                                <!-- Transisi Status Badge -->
                                 <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--space-2);">
-                                    <x-badge-status :status="$hist->to_status" />
+                                    <div style="display: flex; align-items: center; gap: var(--space-1); flex-wrap: wrap;">
+                                        @if ($hist->is_initial)
+                                            <span class="badge badge-neutral" style="font-size: 10px;">Status Awal</span>
+                                            <span style="font-size: 11px; color: var(--text-muted);">&rarr;</span>
+                                            <x-badge-status :status="$hist->to_status" />
+                                        @else
+                                            <x-badge-status :status="$hist->from_status" />
+                                            <span style="font-size: 11px; color: var(--text-muted);">&rarr;</span>
+                                            <x-badge-status :status="$hist->to_status" />
+                                        @endif
+
+                                        @if ($hist->is_correction)
+                                            <span class="badge badge-warning" style="font-size: 10px; font-weight: var(--font-bold);" title="Status dikoreksi oleh Administrator">
+                                                Koreksi Admin
+                                            </span>
+                                        @endif
+                                    </div>
+
                                     <span style="font-size: 11px; color: var(--text-muted);">
-                                        {{ $hist->created_at->format('d/m/Y H:i') }}
+                                        {{ $hist->formatted_created_at }}
                                     </span>
                                 </div>
-                                <div style="font-size: var(--text-xs); color: var(--text-main); margin-top: 2px;">
+
+                                <!-- Aktor Petugas -->
+                                <div style="font-size: var(--text-xs); color: var(--text-main);">
                                     Oleh: <strong>{{ $hist->changer->name }}</strong>
+                                    <span style="color: var(--text-muted); font-size: 11px;">({{ $hist->changer->role->label() }})</span>
                                 </div>
+
+                                <!-- Catatan Operasional / Alasan Koreksi -->
                                 @if ($hist->note)
-                                    <div style="font-size: 11px; color: var(--text-muted); font-style: italic; background: rgba(0,0,0,0.03); padding: 2px 6px; border-radius: var(--radius-sm); margin-top: 2px;">
+                                    <div style="font-size: 11px; color: var(--text-main); background: {{ $hist->is_correction ? 'rgba(217, 119, 6, 0.08)' : 'rgba(0,0,0,0.03)' }}; border-left: 3px solid {{ $hist->is_correction ? 'var(--status-warning)' : 'var(--primary)' }}; padding: 4px 8px; border-radius: 0 var(--radius-sm) var(--radius-sm) 0; margin-top: 2px;">
                                         {{ $hist->note }}
                                     </div>
                                 @endif
@@ -390,6 +593,7 @@
                     @endforeach
                 </div>
             </div>
+
 
             <!-- 3. Aksi Cepat / Navigasi -->
             <div class="glass-card no-print" style="padding: var(--space-5);">
@@ -412,6 +616,215 @@
     </div>
 </div>
 
+<!-- Modal Konfirmasi Perubahan Status Cucian -->
+<div class="modal-backdrop" id="status-modal" role="dialog" aria-modal="true" style="display: none;">
+    <div class="modal-dialog">
+        <div class="modal-header">
+            <div class="modal-icon-wrap modal-icon-primary">
+                <x-icon name="check" size="22" />
+            </div>
+            <div>
+                <h3 class="modal-title" id="status-modal-title">Perbarui Status Cucian</h3>
+                <p class="modal-desc" id="status-modal-desc">Konfirmasi pembaruan status pengerjaan pesanan ini.</p>
+            </div>
+        </div>
+
+        <form method="POST" action="{{ route('orders.update-status', $order) }}" id="status-update-form" data-prevent-double-submit>
+            @csrf
+            @method('PATCH')
+            <input type="hidden" name="status" id="modal-target-status" value="">
+
+            <div style="padding: 0 var(--space-6) var(--space-4);">
+                <!-- Peringatan Pembayaran Belum Lunas jika Serah Terima / Siap Diambil -->
+                <div id="unpaid-warning-box" class="alert alert-warning" style="display: none; margin-bottom: var(--space-4); font-size: var(--text-xs);">
+                    <div style="display: flex; align-items: flex-start; gap: var(--space-2);">
+                        <x-icon name="alert-triangle" size="18" style="flex-shrink: 0; margin-top: 2px;" />
+                        <div>
+                            <strong>Perhatian: Tagihan Belum Lunas!</strong><br>
+                            Sisa tagihan pesanan ini adalah <strong id="unpaid-balance-text"></strong>. Pastikan pembayaran telah diterima atau dicatat sebelum serah terima kepada pelanggan.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="status-note-input" class="form-label">
+                        Catatan Operasional (Opsional)
+                    </label>
+                    <textarea name="note" id="status-note-input" class="form-control" rows="2" placeholder="Contoh: Mesin cuci no. 2, rak C4, telah selesai diperiksa rapi..."></textarea>
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeStatusModal()">
+                    Batal
+                </button>
+                <button type="submit" class="btn btn-primary" id="status-submit-btn">
+                    Simpan Perubahan
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Konfirmasi Pembatalan Pesanan -->
+<div class="modal-backdrop" id="cancel-modal" role="dialog" aria-modal="true" style="display: none;">
+    <div class="modal-dialog">
+        <div class="modal-header">
+            <div class="modal-icon-wrap modal-icon-danger">
+                <x-icon name="alert-triangle" size="22" />
+            </div>
+            <div>
+                <h3 class="modal-title">Batalkan Pesanan {{ $order->order_number }}</h3>
+                <p class="modal-desc">Pesanan yang dibatalkan tidak dapat diproses kembali. Jejak transaksi tetap disimpan untuk audit operasional.</p>
+            </div>
+        </div>
+
+        <form method="POST" action="{{ route('orders.update-status', $order) }}" id="cancel-order-form" data-prevent-double-submit>
+            @csrf
+            @method('PATCH')
+            <input type="hidden" name="status" value="{{ \App\Enums\LaundryStatus::Dibatalkan->value }}">
+
+            <div style="padding: 0 var(--space-6) var(--space-4);">
+                <div class="form-group">
+                    <label for="cancellation-reason-input" class="form-label required">
+                        Alasan Pembatalan (Wajib Diisi)
+                    </label>
+                    <textarea name="cancellation_reason" id="cancellation-reason-input" class="form-control" rows="3" required placeholder="Tuliskan alasan pembatalan secara rinci (misal: Pelanggan membatalkan pesanan sebelum dicuci, kesalahan input transaksi kasir)..."></textarea>
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeCancelModal()">
+                    Tutup
+                </button>
+                <button type="submit" class="btn btn-danger">
+                    Ya, Batalkan Pesanan
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@can('correctStatus', $order)
+<!-- Modal Konfirmasi Koreksi Status (Khusus Administrator) -->
+<div class="modal-backdrop" id="correction-modal" role="dialog" aria-modal="true" style="display: none;">
+    <div class="modal-dialog">
+        <div class="modal-header">
+            <div class="modal-icon-wrap modal-icon-warning">
+                <x-icon name="settings" size="22" />
+            </div>
+            <div>
+                <h3 class="modal-title">Koreksi Status Cucian (Admin)</h3>
+                <p class="modal-desc">Koreksi status digunakan bila terjadi kekeliruan input kasir. Seluruh tindakan dicatat pada audit log sistem.</p>
+            </div>
+        </div>
+
+        <form method="POST" action="{{ route('orders.correct-status', $order) }}" id="status-correction-form" data-prevent-double-submit>
+            @csrf
+            @method('PATCH')
+
+            <div style="padding: 0 var(--space-6) var(--space-4); display: flex; flex-direction: column; gap: var(--space-4);">
+                <div class="form-group">
+                    <label for="correction-target-status" class="form-label required">
+                        Status Target Koreksi
+                    </label>
+                    <select name="status" id="correction-target-status" class="form-control" required>
+                        <option value="">-- Pilih Status Target --</option>
+                        @foreach (\App\Enums\LaundryStatus::cases() as $st)
+                            @if ($st !== $order->laundry_status && $st !== \App\Enums\LaundryStatus::Dibatalkan)
+                                <option value="{{ $st->value }}">
+                                    {{ $st->label() }}
+                                </option>
+                            @endif
+                        @endforeach
+                    </select>
+                    <small style="font-size: 11px; color: var(--text-muted); margin-top: 4px; display: block;">
+                        Status saat ini: <strong>{{ $order->laundry_status->label() }}</strong>.
+                    </small>
+                </div>
+
+                <div class="form-group">
+                    <label for="correction-reason-input" class="form-label required">
+                        Alasan Koreksi Status (Wajib Diisi, Minimal 5 Karakter)
+                    </label>
+                    <textarea name="reason" id="correction-reason-input" class="form-control" rows="3" required placeholder="Contoh: Kesalahan klik status oleh kasir, pakaian sebenarnya belum selesai disetrika..."></textarea>
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeCorrectionModal()">
+                    Batal
+                </button>
+                <button type="submit" class="btn btn-warning">
+                    Simpan Koreksi Status
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+@endcan
+
+<script>
+function openCorrectionModal() {
+    const modal = document.getElementById('correction-modal');
+    if (modal) modal.style.display = 'flex';
+}
+
+function closeCorrectionModal() {
+    const modal = document.getElementById('correction-modal');
+    if (modal) modal.style.display = 'none';
+}
+
+function openStatusModal(statusValue, statusLabel, remainingBalance) {
+
+    document.getElementById('modal-target-status').value = statusValue;
+    document.getElementById('status-modal-title').textContent = 'Lanjut ke: ' + statusLabel;
+    document.getElementById('status-modal-desc').textContent = 'Perbarui status pesanan {{ $order->order_number }} menjadi ' + statusLabel + '.';
+
+    const warningBox = document.getElementById('unpaid-warning-box');
+    if ((statusValue === 'siap_diambil' || statusValue === 'selesai') && remainingBalance > 0) {
+        document.getElementById('unpaid-balance-text').textContent = 'Rp ' + Number(remainingBalance).toLocaleString('id-ID');
+        warningBox.style.display = 'block';
+    } else {
+        warningBox.style.display = 'none';
+    }
+
+    document.getElementById('status-modal').style.display = 'flex';
+}
+
+function closeStatusModal() {
+    document.getElementById('status-modal').style.display = 'none';
+}
+
+function openCancelModal() {
+    document.getElementById('cancel-modal').style.display = 'flex';
+}
+
+function closeCancelModal() {
+    document.getElementById('cancel-modal').style.display = 'none';
+}
+
+function toggleStatusDropdown(event) {
+    event.stopPropagation();
+    const dropdown = document.getElementById('status-alt-dropdown');
+    if (dropdown) {
+        dropdown.style.display = (dropdown.style.display === 'none' || dropdown.style.display === '') ? 'block' : 'none';
+    }
+}
+
+function closeStatusDropdown() {
+    const dropdown = document.getElementById('status-alt-dropdown');
+    if (dropdown) dropdown.style.display = 'none';
+}
+
+document.addEventListener('click', function(e) {
+    const dropdown = document.getElementById('status-alt-dropdown');
+    if (dropdown && !e.target.closest('#status-alt-dropdown') && !e.target.closest('button[onclick*="toggleStatusDropdown"]')) {
+        dropdown.style.display = 'none';
+    }
+});
+</script>
+
 <style>
 @media (max-width: 900px) {
     .order-detail-layout {
@@ -420,3 +833,4 @@
 }
 </style>
 @endsection
+

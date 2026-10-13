@@ -2,12 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\LaundryStatus;
+use App\Exceptions\InvalidStatusTransitionException;
+use App\Http\Requests\Order\CorrectOrderStatusRequest;
 use App\Http\Requests\Order\StoreOrderRequest;
+use App\Http\Requests\Order\UpdateOrderStatusRequest;
 use App\Models\BusinessSetting;
 use App\Models\Customer;
 use App\Models\Order;
 use App\Models\Service;
 use App\Services\OrderService;
+use DomainException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -92,4 +97,69 @@ class OrderController extends Controller
 
         return view('orders.show', compact('order'));
     }
+
+    /**
+     * Perbarui status pengerjaan cucian atau batalkan pesanan secara terkontrol.
+     */
+    public function updateStatus(
+        UpdateOrderStatusRequest $request,
+        Order $order,
+        OrderService $orderService
+    ): RedirectResponse {
+        $validated = $request->validated();
+        $targetStatus = LaundryStatus::from($validated['status']);
+
+        try {
+            $orderService->updateLaundryStatus(
+                order: $order,
+                newStatus: $targetStatus,
+                operator: $request->user(),
+                note: $validated['note'] ?? null,
+                cancellationReason: $validated['cancellation_reason'] ?? null
+            );
+
+            $message = $targetStatus === LaundryStatus::Dibatalkan
+                ? "Pesanan {$order->order_number} berhasil dibatalkan."
+                : "Status cucian pesanan {$order->order_number} berhasil diperbarui menjadi {$targetStatus->label()}.";
+
+            return redirect()
+                ->route('orders.show', $order)
+                ->with('success', $message);
+        } catch (InvalidStatusTransitionException|DomainException $e) {
+            return redirect()
+                ->route('orders.show', $order)
+                ->withErrors(['status' => $e->getMessage()]);
+        }
+    }
+
+    /**
+     * Lakukan koreksi status cucian secara terkontrol khusus untuk Administrator.
+     */
+    public function correctStatus(
+        CorrectOrderStatusRequest $request,
+        Order $order,
+        OrderService $orderService
+    ): RedirectResponse {
+        $validated = $request->validated();
+        $targetStatus = LaundryStatus::from($validated['status']);
+
+        try {
+            $orderService->correctLaundryStatus(
+                order: $order,
+                newStatus: $targetStatus,
+                admin: $request->user(),
+                reason: $validated['reason']
+            );
+
+            return redirect()
+                ->route('orders.show', $order)
+                ->with('success', "Status cucian pesanan {$order->order_number} berhasil dikoreksi menjadi {$targetStatus->label()}.");
+        } catch (DomainException $e) {
+            return redirect()
+                ->route('orders.show', $order)
+                ->withErrors(['correction' => $e->getMessage()]);
+        }
+    }
 }
+
+

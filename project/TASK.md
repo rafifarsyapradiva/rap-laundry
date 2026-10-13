@@ -256,32 +256,32 @@ Jangan menandai task sebagai `[x]` jika belum diverifikasi.
 ## Fase 7 — Status Cucian dan Riwayat
 
 ### Task 7.1 — Transisi status
-- [ ] Implementasikan status `Diterima`.
-- [ ] Implementasikan status `Menunggu Proses`.
-- [ ] Implementasikan status `Dicuci`.
-- [ ] Implementasikan status `Dikeringkan`.
-- [ ] Implementasikan status `Disetrika` bila layanan memerlukannya.
-- [ ] Implementasikan status `Siap Diambil`.
-- [ ] Implementasikan status `Selesai/Diambil`.
-- [ ] Implementasikan status `Dibatalkan`.
-- [ ] Validasi transisi status di server.
-- [ ] Jangan mewajibkan semua layanan melewati tahap yang tidak relevan.
+- [x] Implementasikan status `Diterima`.
+- [x] Implementasikan status `Menunggu Proses`.
+- [x] Implementasikan status `Dicuci`.
+- [x] Implementasikan status `Dikeringkan`.
+- [x] Implementasikan status `Disetrika` bila layanan memerlukannya.
+- [x] Implementasikan status `Siap Diambil`.
+- [x] Implementasikan status `Selesai/Diambil`.
+- [x] Implementasikan status `Dibatalkan`.
+- [x] Validasi transisi status di server.
+- [x] Jangan mewajibkan semua layanan melewati tahap yang tidak relevan.
 
 ### Task 7.2 — Riwayat status
-- [ ] Simpan status sebelumnya dan status baru.
-- [ ] Simpan petugas, waktu, dan catatan opsional.
-- [ ] Tampilkan kronologi perubahan pada detail pesanan.
-- [ ] Batasi koreksi status sesuai role.
-- [ ] Pastikan pembatalan tidak menghapus riwayat transaksi.
+- [x] Simpan status sebelumnya dan status baru.
+- [x] Simpan petugas, waktu, dan catatan opsional.
+- [x] Tampilkan kronologi perubahan pada detail pesanan.
+- [x] Batasi koreksi status sesuai role.
+- [x] Pastikan pembatalan tidak menghapus riwayat transaksi.
 
 ### Task 7.3 — Pengujian status
-- [ ] Uji transisi yang valid.
-- [ ] Uji transisi yang tidak valid.
-- [ ] Uji status siap diambil tetapi belum lunas.
-- [ ] Uji status lunas tetapi belum diambil.
-- [ ] Pastikan status cucian terpisah dari status pembayaran.
+- [x] Uji transisi yang valid.
+- [x] Uji transisi yang tidak valid.
+- [x] Uji status siap diambil tetapi belum lunas.
+- [x] Uji status lunas tetapi belum diambil.
+- [x] Pastikan status cucian terpisah dari status pembayaran.
 
-**Gate 7:** Status cucian dan pembayaran harus bekerja secara independen dan konsisten.
+**Gate 7:** Status cucian dan pembayaran harus bekerja secara independen dan konsisten. (LULUS)
 
 ---
 

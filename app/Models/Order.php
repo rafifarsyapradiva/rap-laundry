@@ -109,6 +109,26 @@ class Order extends Model
     }
 
     /**
+     * Scope pesanan yang sudah siap diambil tetapi belum lunas (belum dibayar atau dibayar sebagian).
+     */
+    public function scopeReadyAndUnpaid(Builder $query): Builder
+    {
+        return $query->where('laundry_status', LaundryStatus::SiapDiambil->value)
+            ->where('payment_status', '!=', PaymentStatus::Lunas->value);
+    }
+
+    /**
+     * Scope pesanan yang sudah lunas tetapi belum diserahkan ke pelanggan (belum berstatus Selesai).
+     */
+    public function scopePaidNotCompleted(Builder $query): Builder
+    {
+        return $query->where('payment_status', PaymentStatus::Lunas->value)
+            ->where('laundry_status', '!=', LaundryStatus::Selesai->value)
+            ->where('laundry_status', '!=', LaundryStatus::Dibatalkan->value);
+    }
+
+
+    /**
      * Total nominal pembayaran valid yang telah masuk.
      */
     public function getTotalPaidAttribute(): float
@@ -155,4 +175,87 @@ class Order extends Model
     {
         return 'Rp' . number_format($this->remaining_balance, 0, ',', '.');
     }
+
+    /**
+     * Periksa apakah pesanan memerlukan tahapan penyetrikaan berdasarkan rincian layanan.
+     */
+    public function requiresIroning(): bool
+    {
+        $items = $this->items;
+        if ($items->isEmpty()) {
+            return false;
+        }
+
+        return $items->contains(function (OrderItem $item) {
+            return stripos($item->service_name_snapshot, 'setrika') !== false;
+        });
+    }
+
+    /**
+     * Periksa apakah pesanan memerlukan tahapan pencucian (misal layanan bukan murni Setrika Saja).
+     */
+    public function requiresWashing(): bool
+    {
+        $items = $this->items;
+        if ($items->isEmpty()) {
+            return true;
+        }
+
+        $allAreIronOnly = $items->every(function (OrderItem $item) {
+            return stripos($item->service_name_snapshot, 'setrika saja') !== false;
+        });
+
+        return ! $allAreIronOnly;
+    }
+
+    /**
+     * Dapatkan rekomendasi status logis berikutnya berdasarkan alur layanan pesanan.
+     */
+    public function getNextRecommendedStatus(): ?LaundryStatus
+    {
+        return match ($this->laundry_status) {
+            LaundryStatus::Diterima => LaundryStatus::MenungguProses,
+            LaundryStatus::MenungguProses => $this->requiresWashing()
+                ? LaundryStatus::Dicuci
+                : LaundryStatus::Disetrika,
+            LaundryStatus::Dicuci => LaundryStatus::Dikeringkan,
+            LaundryStatus::Dikeringkan => $this->requiresIroning()
+                ? LaundryStatus::Disetrika
+                : LaundryStatus::SiapDiambil,
+            LaundryStatus::Disetrika => LaundryStatus::SiapDiambil,
+            LaundryStatus::SiapDiambil => LaundryStatus::Selesai,
+            LaundryStatus::Selesai, LaundryStatus::Dibatalkan => null,
+        };
+    }
+
+    /**
+     * Dapatkan daftar transisi status yang valid dari status saat ini.
+     *
+     * @return list<LaundryStatus>
+     */
+    public function getAvailableTransitions(): array
+    {
+        return $this->laundry_status->allowedTransitions();
+    }
+
+    /**
+     * Periksa apakah pesanan dapat bertransisi ke status target tertentu.
+     */
+    public function canTransitionTo(LaundryStatus $target): bool
+    {
+        if ($this->laundry_status === $target) {
+            return false;
+        }
+
+        return $this->laundry_status->canTransitionTo($target);
+    }
+
+    /**
+     * Periksa apakah status pesanan berada dalam status terminal (Selesai atau Dibatalkan).
+     */
+    public function isTerminal(): bool
+    {
+        return $this->laundry_status->isTerminal();
+    }
 }
+
