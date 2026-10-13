@@ -183,12 +183,12 @@ Jangan menandai task sebagai `[x]` jika belum diverifikasi.
 ## Fase 5 — Modul Pelanggan dan Layanan
 
 ### Task 5.1 — Data pelanggan
-- [ ] Buat halaman daftar pelanggan dengan pagination.
-- [ ] Implementasikan tambah, detail, edit, dan arsip/nonaktif.
-- [ ] Implementasikan pencarian berdasarkan nama, nomor telepon, atau kode pelanggan.
-- [ ] Validasi field wajib dan format nomor telepon.
-- [ ] Cegah penghapusan permanen pelanggan yang memiliki riwayat transaksi.
-- [ ] Tampilkan riwayat transaksi pelanggan jika sesuai.
+- [x] Buat halaman daftar pelanggan dengan pagination.
+- [x] Implementasikan tambah, detail, edit, dan arsip/nonaktif.
+- [x] Implementasikan pencarian berdasarkan nama, nomor telepon, atau kode pelanggan.
+- [x] Validasi field wajib dan format nomor telepon.
+- [x] Cegah penghapusan permanen pelanggan yang memiliki riwayat transaksi.
+- [x] Tampilkan riwayat transaksi pelanggan jika sesuai.
 
 ### Task 5.2 — Master layanan dan harga
 - [ ] Buat halaman daftar layanan.

@@ -1,14 +1,19 @@
 @props([
-    'title',
+    'title' => null,
+    'label' => null,
     'value',
     'icon' => 'dashboard',
     'hint' => null,
     'color' => 'primary',
 ])
 
+@php
+    $cardTitle = $title ?? $label ?? '';
+@endphp
+
 <div {{ $attributes->merge(['class' => 'stat-card glass-panel']) }}>
     <div class="stat-header">
-        <span class="stat-label">{{ $title }}</span>
+        <span class="stat-label">{{ $cardTitle }}</span>
         <div class="stat-icon stat-icon-{{ $color }}">
             <x-icon :name="$icon" size="20" />
         </div>

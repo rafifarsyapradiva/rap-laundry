@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\CustomerController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -29,6 +30,12 @@ Route::middleware('auth')->group(function () {
         Route::get('/dashboard', function () {
             return view('dashboard.index');
         })->name('dashboard');
+
+        // Modul Pengelolaan Data Pelanggan
+        Route::resource('customers', CustomerController::class);
+        Route::post('/customers/{customer}/restore', [CustomerController::class, 'restore'])->name('customers.restore');
+        Route::patch('/customers/{customer}/toggle-status', [CustomerController::class, 'toggleStatus'])->name('customers.toggle-status');
+        Route::delete('/customers/{customer}/force-delete', [CustomerController::class, 'forceDelete'])->name('customers.force-delete');
     });
 
     // Rute administratif khusus pemilik / Admin
