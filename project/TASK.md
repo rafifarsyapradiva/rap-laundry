@@ -468,36 +468,36 @@ Jangan menandai task sebagai `[x]` jika belum diverifikasi.
 ## Fase 13 — Dokumentasi, Backup, dan Rilis Lokal
 
 ### Task 13.1 — README
-- [ ] Dokumentasikan prasyarat versi PHP, Composer, MySQL/MariaDB, dan Node.js bila dibutuhkan.
-- [ ] Dokumentasikan cara membuat database melalui phpMyAdmin.
-- [ ] Dokumentasikan konfigurasi `.env`.
-- [ ] Dokumentasikan instalasi Composer dan build aset.
-- [ ] Dokumentasikan migration dan seeder.
-- [ ] Dokumentasikan cara membuat/reset akun admin.
-- [ ] Dokumentasikan cara menjalankan aplikasi lokal.
-- [ ] Dokumentasikan cara akses melalui LAN jika diperlukan.
-- [ ] Dokumentasikan troubleshooting.
+- [x] Dokumentasikan prasyarat versi PHP, Composer, MySQL/MariaDB, dan Node.js bila dibutuhkan.
+- [x] Dokumentasikan cara membuat database melalui phpMyAdmin.
+- [x] Dokumentasikan konfigurasi `.env`.
+- [x] Dokumentasikan instalasi Composer dan build aset.
+- [x] Dokumentasikan migration dan seeder.
+- [x] Dokumentasikan cara membuat/reset akun admin.
+- [x] Dokumentasikan cara menjalankan aplikasi lokal.
+- [x] Dokumentasikan cara akses melalui LAN jika diperlukan.
+- [x] Dokumentasikan troubleshooting.
 
 ### Task 13.2 — Backup dan pemulihan
-- [ ] Dokumentasikan backup database melalui phpMyAdmin atau `mysqldump`.
-- [ ] Dokumentasikan restore database.
-- [ ] Jelaskan folder/file yang harus dicadangkan selain database.
-- [ ] Uji pemulihan pada database uji.
-- [ ] Jangan menimpa database produksi saat menjalankan migration fresh.
+- [x] Dokumentasikan backup database melalui phpMyAdmin atau `mysqldump`.
+- [x] Dokumentasikan restore database.
+- [x] Jelaskan folder/file yang harus dicadangkan selain database.
+- [x] Uji pemulihan pada database uji.
+- [x] Jangan menimpa database produksi saat menjalankan migration fresh.
 
 ### Task 13.3 — Pemeriksaan rilis
-- [ ] Pastikan file `.env` tidak dibagikan.
-- [ ] Pastikan `APP_DEBUG` dinonaktifkan untuk deployment yang digunakan operasional.
-- [ ] Pastikan aset frontend sudah dibangun.
-- [ ] Pastikan tidak ada dependensi CDN pada fitur inti.
-- [ ] Jalankan migration status.
-- [ ] Jalankan automated tests terakhir.
-- [ ] Periksa log error.
-- [ ] Buat `docs/TEST_REPORT.md`.
-- [ ] Buat `docs/KNOWN_LIMITATIONS.md`.
-- [ ] Perbarui README dengan perintah final yang sudah diverifikasi.
+- [x] Pastikan file `.env` tidak dibagikan.
+- [x] Pastikan `APP_DEBUG` dinonaktifkan untuk deployment yang digunakan operasional.
+- [x] Pastikan aset frontend sudah dibangun.
+- [x] Pastikan tidak ada dependensi CDN pada fitur inti.
+- [x] Jalankan migration status.
+- [x] Jalankan automated tests terakhir.
+- [x] Periksa log error.
+- [x] Buat `docs/TEST_REPORT.md`.
+- [x] Buat `docs/KNOWN_LIMITATIONS.md`.
+- [x] Perbarui README dengan perintah final yang sudah diverifikasi.
 
-**Gate 13:** Rilis hanya boleh dinyatakan siap jika setup, alur utama, pengujian, dan dokumentasi sudah diverifikasi.
+**Gate 13:** Rilis hanya boleh dinyatakan siap jika setup, alur utama, pengujian, dan dokumentasi sudah diverifikasi. (LULUS — Dokumentasi README, setup phpMyAdmin, prosedur backup/restore teruji pada database uji, release audit aman, 288 tests passed 100%, docs/TEST_REPORT.md dan docs/KNOWN_LIMITATIONS.md selesai).
 
 ---
 
