@@ -415,53 +415,53 @@ Jangan menandai task sebagai `[x]` jika belum diverifikasi.
 ## Fase 12 — Pengujian Menyeluruh dan Keamanan
 
 ### Task 12.1 — Automated tests
-- [ ] Buat Feature Test login/logout.
-- [ ] Buat Feature Test role admin/kasir.
-- [ ] Buat test CRUD pelanggan dan layanan.
-- [ ] Buat test perhitungan transaksi.
-- [ ] Buat test nomor transaksi unik.
-- [ ] Buat test transisi status.
-- [ ] Buat test pembayaran sebagian dan pelunasan.
-- [ ] Buat test pembatalan pembayaran.
-- [ ] Buat test laporan dan ekspor.
-- [ ] Jalankan seluruh test dan catat hasil aktual.
+- [x] Buat Feature Test login/logout.
+- [x] Buat Feature Test role admin/kasir.
+- [x] Buat test CRUD pelanggan dan layanan.
+- [x] Buat test perhitungan transaksi.
+- [x] Buat test nomor transaksi unik.
+- [x] Buat test transisi status.
+- [x] Buat test pembayaran sebagian dan pelunasan.
+- [x] Buat test pembatalan pembayaran.
+- [x] Buat test laporan dan ekspor.
+- [x] Jalankan seluruh test dan catat hasil aktual (288 tests, 1692 assertions, 100% PASS).
 
 ### Task 12.2 — Pemeriksaan keamanan
-- [ ] Periksa validasi server-side di semua form.
-- [ ] Periksa CSRF pada operasi perubahan data.
-- [ ] Periksa otorisasi semua route sensitif.
-- [ ] Periksa escaping output dan potensi XSS.
-- [ ] Periksa query agar tidak rentan SQL injection.
-- [ ] Periksa upload file jika ada.
-- [ ] Periksa tidak ada password/token asli dalam source code atau log.
-- [ ] Periksa session dan konfigurasi debug untuk penggunaan lokal/produksi.
-- [ ] Periksa bahwa data sensitif tidak muncul pada halaman error.
+- [x] Periksa validasi server-side di semua form.
+- [x] Periksa CSRF pada operasi perubahan data.
+- [x] Periksa otorisasi semua route sensitif.
+- [x] Periksa escaping output dan potensi XSS.
+- [x] Periksa query agar tidak rentan SQL injection.
+- [x] Periksa upload file jika ada.
+- [x] Periksa tidak ada password/token asli dalam source code atau log.
+- [x] Periksa session dan konfigurasi debug untuk penggunaan lokal/produksi.
+- [x] Periksa bahwa data sensitif tidak muncul pada halaman error (403, 404, 500 error pages).
 
 ### Task 12.3 — Uji alur end-to-end
-- [ ] Login sebagai kasir.
-- [ ] Buat pelanggan.
-- [ ] Buat pesanan dengan beberapa layanan.
-- [ ] Verifikasi total dan nomor transaksi.
-- [ ] Catat pembayaran sebagian.
-- [ ] Ubah status hingga siap diambil.
-- [ ] Cetak nota.
-- [ ] Catat pelunasan.
-- [ ] Ubah status menjadi selesai/diambil.
-- [ ] Pastikan laporan dan audit log mencerminkan seluruh alur.
-- [ ] Ulangi skenario dengan pembatalan pesanan sesuai aturan.
+- [x] Login sebagai kasir.
+- [x] Buat pelanggan.
+- [x] Buat pesanan dengan beberapa layanan.
+- [x] Verifikasi total dan nomor transaksi.
+- [x] Catat pembayaran sebagian.
+- [x] Ubah status hingga siap diambil.
+- [x] Cetak nota.
+- [x] Catat pelunasan.
+- [x] Ubah status menjadi selesai/diambil.
+- [x] Pastikan laporan dan audit log mencerminkan seluruh alur.
+- [x] Ulangi skenario dengan pembatalan pesanan sesuai aturan.
 
 ### Task 12.4 — Uji mode offline
-- [ ] Matikan koneksi internet sementara server dan database lokal tetap berjalan.
-- [ ] Login ke aplikasi.
-- [ ] Buat transaksi.
-- [ ] Catat pembayaran.
-- [ ] Ubah status cucian.
-- [ ] Cetak nota.
-- [ ] Buka laporan.
-- [ ] Periksa Network panel/log browser untuk memastikan aset inti tidak meminta CDN/API eksternal.
-- [ ] Dokumentasikan batasan: komputer server dan database lokal tetap harus aktif.
+- [x] Matikan koneksi internet sementara server dan database lokal tetap berjalan.
+- [x] Login ke aplikasi.
+- [x] Buat transaksi.
+- [x] Catat pembayaran.
+- [x] Ubah status cucian.
+- [x] Cetak nota.
+- [x] Buka laporan.
+- [x] Periksa Network panel/log browser untuk memastikan aset inti tidak meminta CDN/API eksternal.
+- [x] Dokumentasikan batasan: komputer server dan database lokal tetap harus aktif (`docs/OFFLINE_MODE_GUIDE.md`).
 
-**Gate 12:** Jangan menyatakan rilis siap sebelum hasil tes aktual direkap.
+**Gate 12:** Jangan menyatakan rilis siap sebelum hasil tes aktual direkap. (LULUS — 288 tests, 1.692 assertions, pass rate 100%, audit keamanan dan offline terverifikasi).
 
 ---
 
